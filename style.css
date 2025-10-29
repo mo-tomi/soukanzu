@@ -738,12 +738,12 @@ select:focus {
 }
 
 .share-btn-large.share-btn-twitter {
-    background: linear-gradient(135deg, #1DA1F2 0%, #1a8cd8 100%);
+    background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
     color: white;
 }
 
 .share-btn-large.share-btn-twitter:hover {
-    box-shadow: 0 6px 20px rgba(29, 161, 242, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
 .share-btn-large.share-btn-line {
