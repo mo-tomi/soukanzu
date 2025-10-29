@@ -1,7 +1,4 @@
 {
-  "redirects": [
-    { "source": "http://soukanzu.jp/(.*)", "destination": "https://soukanzu.jp/$1", "permanent": true }
-  ],
   "headers": [
     {
       "source": "/(.*)",
