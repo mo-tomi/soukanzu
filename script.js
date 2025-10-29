@@ -1150,21 +1150,8 @@ function saveToLocalStorage() {
 }
 
 function updateOGPTags() {
-    // Update OGP meta tags with current diagram data
-    const data = { people, relationships };
-    const encodedData = encodeURIComponent(JSON.stringify(data));
-    const ogImageUrl = `${window.location.origin}/api/og-image?data=${encodedData}`;
-
-    // Update OGP image tags
-    const ogImage = document.getElementById('ogImage');
-    const twitterImage = document.getElementById('twitterImage');
-
-    if (ogImage) {
-        ogImage.setAttribute('content', ogImageUrl);
-    }
-    if (twitterImage) {
-        twitterImage.setAttribute('content', ogImageUrl);
-    }
+    // Temporarily disabled - use static OGP image for now
+    // Dynamic OGP generation will be re-enabled later with proper PNG support
 
     // Generate a descriptive title based on people in the diagram
     if (people.length > 0) {
