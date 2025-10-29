@@ -77,10 +77,46 @@ window.onload = function() {
     document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
     document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
 
+    // Header navigation
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const closeMobileMenu = document.getElementById('closeMobileMenu');
+    const contactLink = document.getElementById('contactLink');
+    const mobileContactLink = document.getElementById('mobileContactLink');
+
+    if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.style.display = 'block';
+            setTimeout(() => mobileMenu.classList.add('open'), 10);
+        });
+    }
+
+    if (closeMobileMenu) {
+        closeMobileMenu.addEventListener('click', () => {
+            mobileMenu.classList.remove('open');
+            setTimeout(() => mobileMenu.style.display = 'none', 300);
+        });
+    }
+
+    if (contactLink) {
+        contactLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'mailto:contact@soukanzu.jp';
+        });
+    }
+
+    if (mobileContactLink) {
+        mobileContactLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = 'mailto:contact@soukanzu.jp';
+        });
+    }
+
     loadFromLocalStorage();
     renderColorPicker();
     resizeCanvas();
     render();
+    updateOGPTags(); // Update OGP tags on page load
 
     window.addEventListener('resize', resizeCanvas);
 };
@@ -961,6 +997,44 @@ function saveToLocalStorage() {
     const data = { people, relationships };
     localStorage.setItem('relationshipDiagram', JSON.stringify(data));
     showAutoSaveIndicator();
+    updateOGPTags();
+}
+
+function updateOGPTags() {
+    // Update OGP meta tags with current diagram data
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const ogImageUrl = `${window.location.origin}/api/og-image?data=${encodedData}`;
+
+    // Update OGP image tags
+    const ogImage = document.getElementById('ogImage');
+    const twitterImage = document.getElementById('twitterImage');
+
+    if (ogImage) {
+        ogImage.setAttribute('content', ogImageUrl);
+    }
+    if (twitterImage) {
+        twitterImage.setAttribute('content', ogImageUrl);
+    }
+
+    // Generate a descriptive title based on people in the diagram
+    if (people.length > 0) {
+        const names = people.slice(0, 3).map(p => p.name).join('、');
+        const suffix = people.length > 3 ? `ほか${people.length}人` : '';
+        const title = `${names}${suffix}の相関図`;
+        const description = `${people.length}人の相関図を作成しました`;
+
+        // Update title and description
+        const ogTitle = document.getElementById('ogTitle');
+        const ogDescription = document.getElementById('ogDescription');
+        const twitterTitle = document.getElementById('twitterTitle');
+        const twitterDescription = document.getElementById('twitterDescription');
+
+        if (ogTitle) ogTitle.setAttribute('content', title);
+        if (ogDescription) ogDescription.setAttribute('content', description);
+        if (twitterTitle) twitterTitle.setAttribute('content', title);
+        if (twitterDescription) twitterDescription.setAttribute('content', description);
+    }
 }
 
 function loadFromLocalStorage() {
