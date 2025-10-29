@@ -63,9 +63,21 @@ window.onload = function() {
     document.getElementById('saveImageBtn').addEventListener('click', saveAsImage);
 
     document.getElementById('shareTwitterBtn').addEventListener('click', shareTwitter);
-    document.getElementById('shareFacebookBtn').addEventListener('click', shareFacebook);
     document.getElementById('shareLineBtn').addEventListener('click', shareLine);
-    document.getElementById('copyLinkBtn').addEventListener('click', copyLink);
+    document.getElementById('moreShareBtn').addEventListener('click', openShareModal);
+    document.getElementById('closeShareModal').addEventListener('click', closeShareModal);
+    document.getElementById('shareFacebookBtn').addEventListener('click', shareFacebook);
+    document.getElementById('shareInstagramBtn').addEventListener('click', shareInstagram);
+    document.getElementById('shareRedditBtn').addEventListener('click', shareReddit);
+    document.getElementById('sharePinterestBtn').addEventListener('click', sharePinterest);
+    document.getElementById('copyLinkBtn2').addEventListener('click', copyLink);
+
+    // Close modal on outside click
+    document.getElementById('shareModal').addEventListener('click', function(e) {
+        if (e.target.id === 'shareModal') {
+            closeShareModal();
+        }
+    });
 
     document.getElementById('zoomInBtn').addEventListener('click', zoomIn);
     document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
@@ -1034,9 +1046,49 @@ function shareLine() {
     window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text + ' ' + url)}`, '_blank');
 }
 
+function openShareModal() {
+    document.getElementById('shareModal').style.display = 'flex';
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+}
+
+function shareInstagram() {
+    // Instagram doesn't have direct web share, redirect to Instagram app or show message
+    const text = '相関図を作成しました！';
+    const url = window.location.href;
+    // Try to use Web Share API if available
+    if (navigator.share) {
+        navigator.share({
+            title: '相関図ジェネレーター',
+            text: text,
+            url: url
+        }).catch(() => {});
+    } else {
+        alert('Instagram アプリでシェアしてください。リンクをコピーします。');
+        navigator.clipboard.writeText(url);
+    }
+}
+
+function shareReddit() {
+    const text = '相関図を作成しました！';
+    const url = window.location.href;
+    window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`, '_blank');
+}
+
+function sharePinterest() {
+    const url = window.location.href;
+    const description = '相関図を作成しました！';
+    // Pinterest requires an image URL
+    const imageUrl = window.location.origin + '/ogp.png';
+    window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(description)}&media=${encodeURIComponent(imageUrl)}`, '_blank');
+}
+
 function copyLink() {
     const url = window.location.href;
     navigator.clipboard.writeText(url).then(() => {
+        closeShareModal();
         alert('リンクをコピーしました！');
     }).catch(() => {
         alert('コピーに失敗しました');
