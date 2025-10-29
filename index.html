@@ -1,182 +1,214 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6513356386229286" crossorigin="anonymous"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>三角関係 - 相関図ジェネレーター</title>
-    <link rel="stylesheet" href="style.css">
+  <!-- AdSense（自動広告） -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6513356386229286" crossorigin="anonymous"></script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Search Console 所有権確認 -->
+  <meta name="google-site-verification" content="3-QUpfLxh0TVFKQ6sVmx3mHl6RzIv5XNJbCa98ZZaeg" />
+
+  <!-- SEO 基本 -->
+  <title>三角関係 - 相関図ジェネレーター</title>
+  <meta name="description" content="三角関係・四角関係など複雑な人間関係をブラウザ上で直感的に可視化できる無料ツール。ドラッグ&ドロップで編集、画像保存や自動整列にも対応。">
+  <link rel="canonical" href="https://soukanzu.jp/">
+  <meta name="theme-color" content="#ffffff">
+
+  <!-- OGP / Twitter -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="三角関係 - 相関図ジェネレーター">
+  <meta property="og:description" content="ブラウザでサクッと相関図作成。人物追加・関係線ラベル・自動整列・画像保存に対応。">
+  <meta property="og:url" content="https://soukanzu.jp/">
+  <meta property="og:image" content="https://soukanzu.jp/ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- WebApp構造化データ（任意） -->
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"WebApplication",
+    "name":"相関図ジェネレーター",
+    "url":"https://soukanzu.jp/",
+    "applicationCategory":"UtilitiesApplication",
+    "operatingSystem":"Web",
+    "description":"三角関係・四角関係など複雑な関係性を可視化できる無料ツール。"
+  }
+  </script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>三角関係</h1>
-            <p class="subtitle">相関図ジェネレーター</p>
-        </header>
+  <div class="container">
+    <header>
+      <h1>三角関係</h1>
+      <p class="subtitle">相関図ジェネレーター</p>
+    </header>
 
-        <div class="main-grid">
-            <!-- 左パネル: 人物管理 -->
-            <div class="panel">
-                <div class="panel-title">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    人物
-                </div>
-                <div class="person-list" id="personList"></div>
-                <div id="addPersonForm" style="display: none;" class="form-section">
-                    <input type="text" id="personName" class="input-field" placeholder="名前" onkeypress="if(event.key==='Enter')addPerson()">
-                    <div class="color-picker" id="colorPicker"></div>
-                    <div class="button-group">
-                        <button class="btn btn-success" id="addPersonSubmit">追加</button>
-                        <button class="btn btn-cancel" id="addPersonCancel">キャンセル</button>
-                    </div>
-                </div>
-                <button class="btn btn-primary" id="addPersonBtn">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    人物を追加
-                </button>
-            </div>
-
-            <!-- 中央パネル: キャンバス -->
-            <div class="panel">
-                <div class="panel-title">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
-                    </svg>
-                    相関図
-                </div>
-                <div class="canvas-container">
-                    <div class="zoom-controls">
-                        <button class="zoom-btn" id="zoomInBtn" title="拡大">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/>
-                            </svg>
-                        </button>
-                        <button class="zoom-btn" id="zoomOutBtn" title="縮小">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/>
-                            </svg>
-                        </button>
-                        <button class="zoom-btn" id="resetZoomBtn" title="リセット">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
-                        </button>
-                    </div>
-                    <canvas id="canvas"></canvas>
-                </div>
-                <button class="btn btn-pink" id="addRelationFromCanvasBtn" style="margin-bottom: 10px;">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
-                    </svg>
-                    Ctrl+クリックで追加
-                </button>
-                <div class="button-group" style="margin-bottom: 10px;">
-                    <button class="btn btn-success" id="autoArrangeBtn">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                        </svg>
-                        自動整列
-                    </button>
-                    <button class="btn btn-purple" id="saveImageBtn">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                        </svg>
-                        画像として保存
-                    </button>
-                </div>
-                <div class="auto-save-indicator" id="autoSaveIndicator">自動保存しました</div>
-
-                <div class="share-section">
-                    <div class="share-title">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
-                        </svg>
-                        シェア
-                    </div>
-                    <div class="share-buttons">
-                        <button class="share-btn share-btn-twitter" id="shareTwitterBtn">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                            </svg>
-                            X
-                        </button>
-                        <button class="share-btn share-btn-facebook" id="shareFacebookBtn">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                            Facebook
-                        </button>
-                        <button class="share-btn share-btn-line" id="shareLineBtn">
-                            <svg viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
-                            </svg>
-                            LINE
-                        </button>
-                        <button class="share-btn share-btn-copy" id="copyLinkBtn">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                            </svg>
-                            リンクコピー
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 右パネル: 関係性管理 -->
-            <div class="panel">
-                <div class="panel-title">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                    </svg>
-                    関係性
-                </div>
-                <div class="relation-list" id="relationList"></div>
-                <div id="addRelationForm" style="display: none;" class="form-section">
-                    <select id="relationFrom" class="input-field">
-                        <option value="">From（誰から）</option>
-                    </select>
-                    <select id="relationTo" class="input-field">
-                        <option value="">To（誰へ）</option>
-                    </select>
-                    <input type="text" id="relationLabel" class="input-field" placeholder="関係性（例: 憧れている）" onkeypress="if(event.key==='Enter')addRelation()">
-                    <div class="button-group">
-                        <button class="btn btn-success" id="addRelationSubmit">追加</button>
-                        <button class="btn btn-cancel" id="addRelationCancel">キャンセル</button>
-                    </div>
-                </div>
-                <button class="btn btn-pink" id="addRelationBtn">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    関係性を追加
-                </button>
-
-                <div class="help-section">
-                    <div class="help-title">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                        </svg>
-                        使い方
-                    </div>
-                    <ul class="help-list">
-                        <li>人物をドラッグして配置変更</li>
-                        <li>関係性ラベルもドラッグ可能</li>
-                        <li>名前や関係性をクリックで編集</li>
-                        <li>カメラアイコンで画像追加</li>
-                        <li>Ctrl(⌘)+クリックで関係性を追加</li>
-                        <li>Escキーでモードキャンセル</li>
-                        <li>マウスホイール/ピンチで拡大縮小</li>
-                        <li>データは自動保存されます</li>
-                    </ul>
-                </div>
-            </div>
+    <div class="main-grid">
+      <!-- 左パネル: 人物管理 -->
+      <div class="panel">
+        <div class="panel-title">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          人物
         </div>
-    </div>
+        <div class="person-list" id="personList"></div>
+        <div id="addPersonForm" style="display: none;" class="form-section">
+          <input type="text" id="personName" class="input-field" placeholder="名前" onkeypress="if(event.key==='Enter')addPerson()">
+          <div class="color-picker" id="colorPicker"></div>
+          <div class="button-group">
+            <button class="btn btn-success" id="addPersonSubmit">追加</button>
+            <button class="btn btn-cancel" id="addPersonCancel">キャンセル</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="addPersonBtn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          人物を追加
+        </button>
+      </div>
 
-    <script src="script.js"></script>
+      <!-- 中央パネル: キャンバス -->
+      <div class="panel">
+        <div class="panel-title">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+          </svg>
+          相関図
+        </div>
+        <div class="canvas-container">
+          <div class="zoom-controls">
+            <button class="zoom-btn" id="zoomInBtn" title="拡大">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m3-3H7"/>
+              </svg>
+            </button>
+            <button class="zoom-btn" id="zoomOutBtn" title="縮小">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"/>
+              </svg>
+            </button>
+            <button class="zoom-btn" id="resetZoomBtn" title="リセット">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </button>
+          </div>
+          <canvas id="canvas"></canvas>
+        </div>
+        <button class="btn btn-pink" id="addRelationFromCanvasBtn" style="margin-bottom: 10px;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/>
+          </svg>
+          Ctrl+クリックで追加
+        </button>
+        <div class="button-group" style="margin-bottom: 10px;">
+          <button class="btn btn-success" id="autoArrangeBtn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+            </svg>
+            自動整列
+          </button>
+          <button class="btn btn-purple" id="saveImageBtn">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            画像として保存
+          </button>
+        </div>
+        <div class="auto-save-indicator" id="autoSaveIndicator">自動保存しました</div>
+
+        <div class="share-section">
+          <div class="share-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+            シェア
+          </div>
+          <div class="share-buttons">
+            <button class="share-btn share-btn-twitter" id="shareTwitterBtn">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+              </svg>
+              X
+            </button>
+            <button class="share-btn share-btn-facebook" id="shareFacebookBtn">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Facebook
+            </button>
+            <button class="share-btn share-btn-line" id="shareLineBtn">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63.346 0 .628.285.628.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.282.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+              </svg>
+              LINE
+            </button>
+            <button class="share-btn share-btn-copy" id="copyLinkBtn">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              リンクコピー
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右パネル: 関係性管理 -->
+      <div class="panel">
+        <div class="panel-title">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+          関係性
+        </div>
+        <div class="relation-list" id="relationList"></div>
+        <div id="addRelationForm" style="display: none;" class="form-section">
+          <select id="relationFrom" class="input-field">
+            <option value="">From（誰から）</option>
+          </select>
+          <select id="relationTo" class="input-field">
+            <option value="">To（誰へ）</option>
+          </select>
+          <input type="text" id="relationLabel" class="input-field" placeholder="関係性（例: 憧れている）" onkeypress="if(event.key==='Enter')addRelation()">
+          <div class="button-group">
+            <button class="btn btn-success" id="addRelationSubmit">追加</button>
+            <button class="btn btn-cancel" id="addRelationCancel">キャンセル</button>
+          </div>
+        </div>
+        <button class="btn btn-pink" id="addRelationBtn">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          関係性を追加
+        </button>
+
+        <div class="help-section">
+          <div class="help-title">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+            </svg>
+            使い方
+          </div>
+          <ul class="help-list">
+            <li>人物をドラッグして配置変更</li>
+            <li>関係性ラベルもドラッグ可能</li>
+            <li>名前や関係性をクリックで編集</li>
+            <li>カメラアイコンで画像追加</li>
+            <li>Ctrl(⌘)+クリックで関係性を追加</li>
+            <li>Escキーでモードキャンセル</li>
+            <li>マウスホイール/ピンチで拡大縮小</li>
+            <li>データは自動保存されます</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
