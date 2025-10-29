@@ -375,15 +375,24 @@ body {
 .upload-icon svg {
     width: 14px;
     height: 14px;
+    transition: stroke 0.2s;
 }
 
 .upload-icon:hover {
     background: #f0f0f0;
 }
 
+.upload-icon:hover svg {
+    stroke: #2196F3;
+}
+
 .upload-icon:active {
     background: #e0e0e0;
     transform: scale(0.95);
+}
+
+.upload-icon:active svg {
+    stroke: #1976D2;
 }
 
 .person-info {
