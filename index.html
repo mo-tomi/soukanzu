@@ -1,8 +1,23 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XXXXXXXXXX');
+  </script>
+
   <!-- AdSense（自動広告） -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6513356386229286" crossorigin="anonymous"></script>
+
+  <!-- Performance: Preconnect -->
+  <link rel="preconnect" href="https://pagead2.googlesyndication.com">
+  <link rel="preconnect" href="https://googleads.g.doubleclick.net">
+  <link rel="preconnect" href="https://www.googletagmanager.com">
+  <link rel="dns-prefetch" href="https://www.google-analytics.com">
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +30,12 @@
   <meta name="description" content="三角関係・四角関係など複雑な人間関係をブラウザ上で直感的に可視化できる無料ツール。ドラッグ&ドロップで編集、画像保存や自動整列にも対応。">
   <link rel="canonical" href="https://soukanzu.jp/">
   <meta name="theme-color" content="#ffffff">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
 
   <!-- OGP / Twitter -->
   <meta property="og:type" content="website">
@@ -208,6 +229,40 @@
       </div>
     </div>
   </div>
+
+  <!-- Cookie Consent Banner (GDPR/CCPA for AdSense) -->
+  <div id="cookieConsent" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#2c3e50; color:#fff; padding:20px; z-index:9999; text-align:center; font-size:14px;">
+    <p style="margin:0 0 10px 0;">
+      このサイトでは、広告配信のためにCookieを使用しています。詳しくは<a href="https://policies.google.com/technologies/partner-sites" target="_blank" style="color:#3498db; text-decoration:underline;">プライバシーポリシー</a>をご覧ください。
+    </p>
+    <button id="acceptCookies" style="background:#27ae60; color:#fff; border:none; padding:10px 20px; margin:0 5px; cursor:pointer; border-radius:4px; font-weight:bold;">同意する</button>
+    <button id="declineCookies" style="background:#95a5a6; color:#fff; border:none; padding:10px 20px; margin:0 5px; cursor:pointer; border-radius:4px;">拒否する</button>
+  </div>
+
+  <script>
+    // Cookie Consent Logic
+    (function() {
+      const consent = localStorage.getItem('cookieConsent');
+      if (!consent) {
+        document.getElementById('cookieConsent').style.display = 'block';
+      }
+
+      document.getElementById('acceptCookies').addEventListener('click', function() {
+        localStorage.setItem('cookieConsent', 'accepted');
+        document.getElementById('cookieConsent').style.display = 'none';
+        // Reload AdSense ads if needed
+        if (typeof adsbygoogle !== 'undefined') {
+          (adsbygoogle = window.adsbygoogle || []).push({});
+        }
+      });
+
+      document.getElementById('declineCookies').addEventListener('click', function() {
+        localStorage.setItem('cookieConsent', 'declined');
+        document.getElementById('cookieConsent').style.display = 'none';
+        // Optionally disable ads
+      });
+    })();
+  </script>
 
   <script src="script.js"></script>
 </body>

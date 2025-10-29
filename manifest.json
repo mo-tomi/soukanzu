@@ -1,0 +1,25 @@
+{
+  "name": "相関図ジェネレーター",
+  "short_name": "相関図",
+  "description": "三角関係・四角関係など複雑な人間関係を可視化する無料ツール",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "ja",
+  "dir": "ltr"
+}
