@@ -1030,52 +1030,28 @@ function showAutoSaveIndicator() {
 }
 
 function shareTwitter() {
-    // Try to share with image using Web Share API (works on mobile)
-    canvas.toBlob(async (blob) => {
-        const file = new File([blob], '相関図.png', { type: 'image/png' });
+    // Generate unique share URL with diagram data
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
 
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            try {
-                await navigator.share({
-                    title: '相関図を作成しました！',
-                    text: '相関図ジェネレーターで作成 #相関図',
-                    url: window.location.href,
-                    files: [file]
-                });
-                return;
-            } catch (err) {
-                if (err.name === 'AbortError') return; // User cancelled
-            }
-        }
-
-        // Fallback: Open Twitter with text and show instruction
-        const text = '相関図を作成しました！ #相関図';
-        const url = window.location.href;
-
-        // Download image first
-        const link = document.createElement('a');
-        link.download = '相関図.png';
-        link.href = canvas.toDataURL();
-        link.click();
-
-        // Show instruction
-        setTimeout(() => {
-            if (confirm('画像をダウンロードしました！\n\nXでシェアする際は、ツイート画面で画像を添付してください。\n\n今すぐXを開きますか？')) {
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
-            }
-        }, 500);
-    });
+    const text = '相関図を作成しました！ #相関図';
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
 }
 
 function shareFacebook() {
-    const url = window.location.href;
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
 }
 
 function shareLine() {
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
     const text = '相関図を作成しました！';
-    const url = window.location.href;
-    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text + ' ' + url)}`, '_blank');
+    window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text + ' ' + shareUrl)}`, '_blank');
 }
 
 function openShareModal() {
@@ -1104,17 +1080,20 @@ function shareInstagram() {
 }
 
 function shareReddit() {
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
     const text = '相関図を作成しました！';
-    const url = window.location.href;
-    window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`, '_blank');
+    window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(text)}`, '_blank');
 }
 
 function sharePinterest() {
-    const url = window.location.href;
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+    const imageUrl = `${window.location.origin}/api/og-image?data=${encodedData}`;
     const description = '相関図を作成しました！';
-    // Pinterest requires an image URL
-    const imageUrl = window.location.origin + '/ogp.png';
-    window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(url)}&description=${encodeURIComponent(description)}&media=${encodeURIComponent(imageUrl)}`, '_blank');
+    window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&description=${encodeURIComponent(description)}&media=${encodeURIComponent(imageUrl)}`, '_blank');
 }
 
 function copyLink() {
