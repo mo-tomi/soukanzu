@@ -1030,9 +1030,41 @@ function showAutoSaveIndicator() {
 }
 
 function shareTwitter() {
-    const text = '相関図を作成しました！';
-    const url = window.location.href;
-    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+    // Try to share with image using Web Share API (works on mobile)
+    canvas.toBlob(async (blob) => {
+        const file = new File([blob], '相関図.png', { type: 'image/png' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    title: '相関図を作成しました！',
+                    text: '相関図ジェネレーターで作成 #相関図',
+                    url: window.location.href,
+                    files: [file]
+                });
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return; // User cancelled
+            }
+        }
+
+        // Fallback: Open Twitter with text and show instruction
+        const text = '相関図を作成しました！ #相関図';
+        const url = window.location.href;
+
+        // Download image first
+        const link = document.createElement('a');
+        link.download = '相関図.png';
+        link.href = canvas.toDataURL();
+        link.click();
+
+        // Show instruction
+        setTimeout(() => {
+            if (confirm('画像をダウンロードしました！\n\nXでシェアする際は、ツイート画面で画像を添付してください。\n\n今すぐXを開きますか？')) {
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+            }
+        }, 500);
+    });
 }
 
 function shareFacebook() {
