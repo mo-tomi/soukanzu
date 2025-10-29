@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
 Sitemap: https://soukanzu.jp/sitemap.xml
+# redeploy
