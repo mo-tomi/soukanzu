@@ -71,6 +71,9 @@ body {
 .nav-link svg {
     width: 20px;
     height: 20px;
+    display: block;
+    flex-shrink: 0;
+    vertical-align: middle;
 }
 
 .social-link {
@@ -150,6 +153,8 @@ body {
 .mobile-menu-link svg {
     width: 24px;
     height: 24px;
+    display: block;
+    flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
