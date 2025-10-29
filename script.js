@@ -1217,19 +1217,24 @@ function showAutoSaveIndicator() {
 }
 
 function shareTwitter() {
-    // Share main page URL with static OGP image
-    const shareUrl = window.location.origin + '/';
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
     const text = '相関図を作成しました！ #相関図ジェネレーター';
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
 }
 
 function shareFacebook() {
-    const shareUrl = window.location.origin + '/';
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
 }
 
 function shareLine() {
-    const shareUrl = window.location.origin + '/';
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
     const text = '相関図を作成しました！';
     window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text + ' ' + shareUrl)}`, '_blank');
 }
@@ -1260,14 +1265,18 @@ function shareInstagram() {
 }
 
 function shareReddit() {
-    const shareUrl = window.location.origin + '/';
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
     const text = '相関図を作成しました！';
     window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(text)}`, '_blank');
 }
 
 function sharePinterest() {
-    const shareUrl = window.location.origin + '/';
-    const imageUrl = `${window.location.origin}/ogp.png`;
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+    const imageUrl = `${window.location.origin}/api/og-image?data=${encodedData}`;
     const description = '相関図を作成しました！';
     window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&description=${encodeURIComponent(description)}&media=${encodeURIComponent(imageUrl)}`, '_blank');
 }
