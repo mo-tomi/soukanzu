@@ -3,17 +3,11 @@ const colors = [
     '#ef4444', '#06b6d4', '#84cc16', '#f97316', '#a855f7'
 ];
 
-let people = [
-    { id: 1, name: '太郎', x: 200, y: 150, image: null, color: '#3b82f6' },
-    { id: 2, name: '花子', x: 400, y: 150, image: null, color: '#ec4899' },
-    { id: 3, name: '次郎', x: 300, y: 300, image: null, color: '#10b981' }
-];
+// デフォルトの人物は loadFromLocalStorage で初期化
+let people = [];
 
-let relationships = [
-    { id: 1, from: 1, to: 2, label: '憧れている', labelOffsetX: null, labelOffsetY: null },
-    { id: 2, from: 2, to: 3, label: '親友', labelOffsetX: null, labelOffsetY: null },
-    { id: 3, from: 3, to: 1, label: 'ライバル視', labelOffsetX: null, labelOffsetY: null }
-];
+// デフォルトの関係性も loadFromLocalStorage で初期化
+let relationships = [];
 
 let dragging = null;
 let draggingLabel = null;
@@ -978,8 +972,30 @@ function loadFromLocalStorage() {
             relationships = data.relationships;
         } catch (error) {
             console.error('データの読み込みに失敗しました', error);
+            initializeDefaultData();
         }
+    } else {
+        // データがない場合はデフォルトを中央に配置
+        initializeDefaultData();
     }
+}
+
+function initializeDefaultData() {
+    // キャンバスの中心座標を計算
+    const centerX = canvasWidth / 2;
+    const centerY = canvasHeight / 2;
+
+    people = [
+        { id: 1, name: '太郎', x: centerX - 150, y: centerY - 75, image: null, color: '#3b82f6' },
+        { id: 2, name: '花子', x: centerX + 150, y: centerY - 75, image: null, color: '#ec4899' },
+        { id: 3, name: '次郎', x: centerX, y: centerY + 100, image: null, color: '#10b981' }
+    ];
+
+    relationships = [
+        { id: 1, from: 1, to: 2, label: '憧れている', labelOffsetX: null, labelOffsetY: null },
+        { id: 2, from: 2, to: 3, label: '親友', labelOffsetX: null, labelOffsetY: null },
+        { id: 3, from: 3, to: 1, label: 'ライバル視', labelOffsetX: null, labelOffsetY: null }
+    ];
 }
 
 function showAutoSaveIndicator() {
