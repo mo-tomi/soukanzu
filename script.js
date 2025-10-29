@@ -83,8 +83,6 @@ window.onload = function() {
     document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
     document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
 
-    document.getElementById('addRelationFromCanvasBtn').addEventListener('click', toggleAddRelationMode);
-
     loadFromLocalStorage();
     renderColorPicker();
     resizeCanvas();
@@ -93,36 +91,12 @@ window.onload = function() {
     window.addEventListener('resize', resizeCanvas);
 };
 
-function toggleAddRelationMode() {
-    addRelationMode = !addRelationMode;
-    relationFrom = null;
-    relationTo = null;
-
-    const btn = document.getElementById('addRelationFromCanvasBtn');
-    if (addRelationMode) {
-        btn.classList.add('active');
-        btn.textContent = '関係性追加モード: From を選択';
-        canvas.style.cursor = 'crosshair';
-    } else {
-        btn.classList.remove('active');
-        btn.textContent = 'Ctrl+クリックで追加';
-        canvas.style.cursor = 'default';
-    }
-
-    renderCanvas();
-}
-
 function cancelAddRelationMode() {
     if (addRelationMode) {
         addRelationMode = false;
         relationFrom = null;
         relationTo = null;
-
-        const btn = document.getElementById('addRelationFromCanvasBtn');
-        btn.classList.remove('active');
-        btn.textContent = 'Ctrl+クリックで追加';
         canvas.style.cursor = 'default';
-
         renderCanvas();
     }
 }
@@ -561,11 +535,6 @@ function handleCanvasMouseDown(e) {
                 if (!addRelationMode && isModifierKey) {
                     // 修飾キーで初めて押された場合、モードを有効化
                     addRelationMode = true;
-                    const btn = document.getElementById('addRelationFromCanvasBtn');
-                    if (btn) {
-                        btn.classList.add('active');
-                        btn.textContent = '関係性追加モード: From を選択';
-                    }
                     canvas.style.cursor = 'crosshair';
                 }
                 handleRelationModeClick(person.id);
@@ -600,13 +569,8 @@ function handleCanvasMouseDown(e) {
 }
 
 function handleRelationModeClick(personId) {
-    const btn = document.getElementById('addRelationFromCanvasBtn');
-
     if (relationFrom === null) {
         relationFrom = personId;
-        if (btn) {
-            btn.textContent = '関係性追加モード: To を選択 (Escでキャンセル)';
-        }
         renderCanvas();
     } else if (relationTo === null) {
         if (relationFrom === personId) {
@@ -614,9 +578,6 @@ function handleRelationModeClick(personId) {
             return;
         }
         relationTo = personId;
-        if (btn) {
-            btn.textContent = '関係性追加モード: ラベルを入力';
-        }
         renderCanvas();
 
         // ラベル入力のプロンプトを表示
