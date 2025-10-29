@@ -987,9 +987,158 @@ function autoArrange() {
 }
 
 function saveAsImage() {
+    // Create a high-resolution canvas for export (3x resolution)
+    const exportScale = 3;
+    const exportCanvas = document.createElement('canvas');
+    const exportCtx = exportCanvas.getContext('2d');
+
+    // Set high-resolution dimensions
+    exportCanvas.width = canvasWidth * exportScale;
+    exportCanvas.height = canvasHeight * exportScale;
+
+    // Scale the context
+    exportCtx.scale(exportScale, exportScale);
+
+    // Fill background with white
+    exportCtx.fillStyle = 'white';
+    exportCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    // Draw all relationships
+    relationships.forEach(rel => {
+        const from = people.find(p => p.id === rel.from);
+        const to = people.find(p => p.id === rel.to);
+
+        if (from && to) {
+            const fromX = from.x;
+            const fromY = from.y;
+            const toX = to.x;
+            const toY = to.y;
+
+            // Calculate angle
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+
+            // Offset start and end points to be at edge of circles
+            const radius = 50;
+            const startX = fromX + Math.cos(angle) * radius;
+            const startY = fromY + Math.sin(angle) * radius;
+            const endX = toX - Math.cos(angle) * radius;
+            const endY = toY - Math.sin(angle) * radius;
+
+            // Draw line
+            exportCtx.strokeStyle = '#ec4899';
+            exportCtx.lineWidth = 3;
+            exportCtx.globalAlpha = 0.6;
+            exportCtx.beginPath();
+            exportCtx.moveTo(startX, startY);
+            exportCtx.lineTo(endX, endY);
+            exportCtx.stroke();
+            exportCtx.globalAlpha = 1.0;
+
+            // Draw arrow
+            const arrowLength = 15;
+            const arrowAngle = Math.PI / 6;
+            exportCtx.fillStyle = '#ec4899';
+            exportCtx.globalAlpha = 0.8;
+            exportCtx.beginPath();
+            exportCtx.moveTo(endX, endY);
+            exportCtx.lineTo(
+                endX - arrowLength * Math.cos(angle - arrowAngle),
+                endY - arrowLength * Math.sin(angle - arrowAngle)
+            );
+            exportCtx.lineTo(
+                endX - arrowLength * Math.cos(angle + arrowAngle),
+                endY - arrowLength * Math.sin(angle + arrowAngle)
+            );
+            exportCtx.closePath();
+            exportCtx.fill();
+            exportCtx.globalAlpha = 1.0;
+
+            // Draw label
+            const midX = (fromX + toX) / 2 + (rel.labelOffsetX || 0);
+            const midY = (fromY + toY) / 2 + (rel.labelOffsetY || 0);
+
+            if (rel.label) {
+                exportCtx.font = 'bold 16px sans-serif';
+                exportCtx.fillStyle = '#333';
+                exportCtx.textAlign = 'center';
+                exportCtx.textBaseline = 'middle';
+
+                // Draw background for label
+                const metrics = exportCtx.measureText(rel.label);
+                const padding = 8;
+                exportCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                exportCtx.fillRect(
+                    midX - metrics.width / 2 - padding,
+                    midY - 12,
+                    metrics.width + padding * 2,
+                    24
+                );
+
+                exportCtx.fillStyle = '#333';
+                exportCtx.fillText(rel.label, midX, midY);
+            }
+        }
+    });
+
+    // Draw all people
+    people.forEach(person => {
+        const x = person.x;
+        const y = person.y;
+        const radius = 50;
+
+        // Draw circle
+        exportCtx.fillStyle = person.color || '#3b82f6';
+        exportCtx.beginPath();
+        exportCtx.arc(x, y, radius, 0, Math.PI * 2);
+        exportCtx.fill();
+
+        // Draw white border
+        exportCtx.strokeStyle = 'white';
+        exportCtx.lineWidth = 4;
+        exportCtx.stroke();
+
+        // Draw image if exists
+        if (person.image && imageCache[person.id]) {
+            exportCtx.save();
+            exportCtx.beginPath();
+            exportCtx.arc(x, y, radius, 0, Math.PI * 2);
+            exportCtx.clip();
+            exportCtx.drawImage(imageCache[person.id], x - radius, y - radius, radius * 2, radius * 2);
+            exportCtx.restore();
+        } else {
+            // Draw initial letter
+            exportCtx.fillStyle = 'white';
+            exportCtx.font = 'bold 32px sans-serif';
+            exportCtx.textAlign = 'center';
+            exportCtx.textBaseline = 'middle';
+            exportCtx.fillText(person.name.charAt(0), x, y);
+        }
+
+        // Draw name below circle
+        exportCtx.fillStyle = '#333';
+        exportCtx.font = 'bold 18px sans-serif';
+        exportCtx.textAlign = 'center';
+        exportCtx.textBaseline = 'top';
+
+        // Draw background for name
+        const nameMetrics = exportCtx.measureText(person.name);
+        const namePadding = 6;
+        exportCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        exportCtx.fillRect(
+            x - nameMetrics.width / 2 - namePadding,
+            y + radius + 5,
+            nameMetrics.width + namePadding * 2,
+            24
+        );
+
+        exportCtx.fillStyle = '#333';
+        exportCtx.fillText(person.name, x, y + radius + 10);
+    });
+
+    // Convert to high-quality PNG and download
     const link = document.createElement('a');
     link.download = '相関図.png';
-    link.href = canvas.toDataURL();
+    link.href = exportCanvas.toDataURL('image/png', 1.0);
     link.click();
 }
 
