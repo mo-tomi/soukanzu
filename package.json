@@ -2,8 +2,5 @@
   "name": "soukanzu",
   "version": "1.0.0",
   "type": "module",
-  "dependencies": {
-    "satori": "^0.10.9",
-    "sharp": "^0.33.0"
-  }
+  "dependencies": {}
 }
