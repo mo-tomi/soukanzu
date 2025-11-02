@@ -11,7 +11,7 @@ export default async function handler(request) {
   }
 
   // Redirect to Cloudflare Worker for PNG generation
-  const cloudflareUrl = `https://soukanzu-og-image.tomimoe1226.workers.dev?data=${data}`;
+  const cloudflareUrl = `https://soukanzu-og-image.tomimoe1226.workers.dev?data=${encodeURIComponent(data)}`;
 
   try {
     const response = await fetch(cloudflareUrl);
