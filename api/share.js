@@ -15,7 +15,7 @@ export default async function handler(request) {
     // Decode to validate
     JSON.parse(decodeURIComponent(data));
 
-    const ogImageUrl = `https://soukanzu.jp/api/og-image?data=${data}`;
+    const ogImageUrl = `https://soukanzu.jp/api/og-image?data=${encodeURIComponent(data)}`;
 
     const html = `<!DOCTYPE html>
 <html lang="ja">
