@@ -1,0 +1,16 @@
+{
+  "name": "soukanzu-og-worker",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "satori": "^0.10.9",
+    "@resvg/resvg-wasm": "^2.4.1"
+  },
+  "devDependencies": {
+    "wrangler": "^3.22.1"
+  }
+}
