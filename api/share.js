@@ -56,7 +56,7 @@ export default async function handler(request) {
   <meta name="twitter:site" content="@TOMI_AI_">
 
   <script>
-    // クローラー用に少し遅延させてからリダイレクト
+    // クローラー用に待機してからリダイレクト（3秒に延長）
     setTimeout(function() {
       const urlParams = new URLSearchParams(window.location.search);
       const data = urlParams.get('data');
@@ -69,7 +69,7 @@ export default async function handler(request) {
         }
       }
       window.location.href = '/';
-    }, 500);
+    }, 3000); // 500msから3000msに変更
   </script>
 
   <style>
@@ -117,6 +117,13 @@ export default async function handler(request) {
       animation: spin 1s linear infinite;
       margin: 20px auto;
     }
+    /* OG画像のプリロード */
+    .preload-image {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -124,6 +131,9 @@ export default async function handler(request) {
   </style>
 </head>
 <body>
+  <!-- OG画像をプリロード -->
+  <img src="${ogImageUrl}" class="preload-image" alt="">
+
   <div class="container">
     <div class="spinner"></div>
     <h1>相関図を読み込んでいます...</h1>
@@ -136,7 +146,8 @@ export default async function handler(request) {
     return new Response(html, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+        // クローラーのキャッシュを延長
+        'Cache-Control': 'public, max-age=86400, s-maxage=604800',
       },
     });
   } catch (error) {
