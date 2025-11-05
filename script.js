@@ -1150,27 +1150,39 @@ function saveToLocalStorage() {
 }
 
 function updateOGPTags() {
-    // Temporarily disabled - use static OGP image for now
-    // Dynamic OGP generation will be re-enabled later with proper PNG support
+    // 相関図のデータを準備
+    const data = { people, relationships };
+    const encodedData = encodeURIComponent(JSON.stringify(data));
 
-    // Generate a descriptive title based on people in the diagram
+    // OG画像のURLを生成（相関図の内容に基づいて動的に生成）
+    const ogImageUrl = `${window.location.origin}/api/og-image?data=${encodedData}`;
+
+    // タイトルと説明文を生成
+    let title = '相関図を作成しました！';
+    let description = '相関図ジェネレーターで作成した相関図です';
+
     if (people.length > 0) {
+        // 人物名を使ってタイトルを作成
         const names = people.slice(0, 3).map(p => p.name).join('、');
         const suffix = people.length > 3 ? `ほか${people.length}人` : '';
-        const title = `${names}${suffix}の相関図`;
-        const description = `${people.length}人の相関図を作成しました`;
-
-        // Update title and description
-        const ogTitle = document.getElementById('ogTitle');
-        const ogDescription = document.getElementById('ogDescription');
-        const twitterTitle = document.getElementById('twitterTitle');
-        const twitterDescription = document.getElementById('twitterDescription');
-
-        if (ogTitle) ogTitle.setAttribute('content', title);
-        if (ogDescription) ogDescription.setAttribute('content', description);
-        if (twitterTitle) twitterTitle.setAttribute('content', title);
-        if (twitterDescription) twitterDescription.setAttribute('content', description);
+        title = `${names}${suffix}の相関図`;
+        description = `${people.length}人の人間関係を可視化した相関図です`;
     }
+
+    // OGPタグを更新
+    const ogTitle = document.getElementById('ogTitle');
+    const ogDescription = document.getElementById('ogDescription');
+    const ogImage = document.getElementById('ogImage');
+    const twitterTitle = document.getElementById('twitterTitle');
+    const twitterDescription = document.getElementById('twitterDescription');
+    const twitterImage = document.getElementById('twitterImage');
+
+    if (ogTitle) ogTitle.setAttribute('content', title);
+    if (ogDescription) ogDescription.setAttribute('content', description);
+    if (ogImage) ogImage.setAttribute('content', ogImageUrl);
+    if (twitterTitle) twitterTitle.setAttribute('content', title);
+    if (twitterDescription) twitterDescription.setAttribute('content', description);
+    if (twitterImage) twitterImage.setAttribute('content', ogImageUrl);
 }
 
 function loadFromLocalStorage() {
@@ -1220,7 +1232,16 @@ function shareTwitter() {
     const data = { people, relationships };
     const encodedData = encodeURIComponent(JSON.stringify(data));
     const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
-    const text = '相関図を作成しました！ #相関図ジェネレーター';
+
+    // 人物名を含めたシェアテキストを生成
+    let text = '相関図を作成しました！';
+    if (people.length > 0) {
+        const names = people.slice(0, 2).map(p => p.name).join('、');
+        const suffix = people.length > 2 ? `ほか${people.length}人` : '';
+        text = `${names}${suffix}の相関図を作成しました！`;
+    }
+    text += ' #相関図ジェネレーター';
+
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
 }
 
@@ -1228,6 +1249,7 @@ function shareFacebook() {
     const data = { people, relationships };
     const encodedData = encodeURIComponent(JSON.stringify(data));
     const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
 }
 
@@ -1235,7 +1257,14 @@ function shareLine() {
     const data = { people, relationships };
     const encodedData = encodeURIComponent(JSON.stringify(data));
     const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
-    const text = '相関図を作成しました！';
+
+    let text = '相関図を作成しました！';
+    if (people.length > 0) {
+        const names = people.slice(0, 2).map(p => p.name).join('、');
+        const suffix = people.length > 2 ? `ほか${people.length}人` : '';
+        text = `${names}${suffix}の相関図を作成しました！`;
+    }
+
     window.open(`https://line.me/R/msg/text/?${encodeURIComponent(text + ' ' + shareUrl)}`, '_blank');
 }
 
