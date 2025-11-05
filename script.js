@@ -1231,7 +1231,8 @@ function showAutoSaveIndicator() {
 function shareTwitter() {
     const data = { people, relationships };
     const encodedData = encodeURIComponent(JSON.stringify(data));
-    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+    const timestamp = Date.now();
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
 
     // 人物名を含めたシェアテキストを生成
     let text = '相関図を作成しました！';
@@ -1248,7 +1249,8 @@ function shareTwitter() {
 function shareFacebook() {
     const data = { people, relationships };
     const encodedData = encodeURIComponent(JSON.stringify(data));
-    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+    const timestamp = Date.now();
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
 
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
 }
@@ -1256,7 +1258,8 @@ function shareFacebook() {
 function shareLine() {
     const data = { people, relationships };
     const encodedData = encodeURIComponent(JSON.stringify(data));
-    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+    const timestamp = Date.now();
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
 
     let text = '相関図を作成しました！';
     if (people.length > 0) {
@@ -1296,7 +1299,8 @@ function shareInstagram() {
 function shareReddit() {
     const data = { people, relationships };
     const encodedData = encodeURIComponent(JSON.stringify(data));
-    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+    const timestamp = Date.now();
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
     const text = '相関図を作成しました！';
     window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(text)}`, '_blank');
 }
@@ -1304,7 +1308,8 @@ function shareReddit() {
 function sharePinterest() {
     const data = { people, relationships };
     const encodedData = encodeURIComponent(JSON.stringify(data));
-    const shareUrl = `${window.location.origin}/api/share?data=${encodedData}`;
+    const timestamp = Date.now();
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
     const imageUrl = `${window.location.origin}/api/og-image?data=${encodedData}`;
     const description = '相関図を作成しました！';
     window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&description=${encodeURIComponent(description)}&media=${encodeURIComponent(imageUrl)}`, '_blank');
