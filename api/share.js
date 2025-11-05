@@ -7,60 +7,128 @@ export default async function handler(request) {
   const data = searchParams.get('data');
 
   if (!data) {
-    // Redirect to home if no data
     return Response.redirect('https://soukanzu.jp/', 302);
   }
 
   try {
-    // Decode to validate
-    JSON.parse(decodeURIComponent(data));
+    // データをデコードしてパース
+    const diagramData = JSON.parse(decodeURIComponent(data));
+    const { people = [], relationships = [] } = diagramData;
 
-    const ogImageUrl = `https://soukanzu.jp/api/og-image?data=${encodeURIComponent(data)}`;
+    // 相関図データに基づいて動的にタイトルと説明文を生成
+    let title = '相関図を作成しました！';
+    let description = '相関図ジェネレーターで作成した相関図です';
+
+    if (people.length > 0) {
+      const names = people.slice(0, 3).map(p => p.name).join('、');
+      const suffix = people.length > 3 ? `ほか${people.length}人` : '';
+      title = `${names}${suffix}の相関図`;
+      description = `${people.length}人の人間関係を可視化した相関図です`;
+    }
+
+    // Cloudflare Workerを直接使用
+    const ogImageUrl = `https://soukanzu-og-image.tomimoe1226.workers.dev?data=${encodeURIComponent(data)}`;
 
     const html = `<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>相関図を作成しました！ - 相関図ジェネレーター</title>
-  <meta name="description" content="相関図ジェネレーターで作成した相関図を見る">
+  <title>${title} - 相関図ジェネレーター</title>
+  <meta name="description" content="${description}">
 
   <!-- OGP -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="相関図を作成しました！">
-  <meta property="og:description" content="相関図ジェネレーターで作成した相関図です">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="${description}">
   <meta property="og:url" content="${request.url}">
   <meta property="og:image" content="${ogImageUrl}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:site_name" content="相関図ジェネレーター">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="相関図を作成しました！">
-  <meta name="twitter:description" content="相関図ジェネレーターで作成した相関図です">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${ogImageUrl}">
+  <meta name="twitter:site" content="@TOMI_AI_">
 
   <script>
-    // Redirect to home with data
-    const urlParams = new URLSearchParams(window.location.search);
-    const data = urlParams.get('data');
-    if (data) {
-      // Store in localStorage and redirect
-      try {
-        const diagramData = JSON.parse(decodeURIComponent(data));
-        localStorage.setItem('relationshipDiagram', JSON.stringify(diagramData));
-      } catch (e) {
-        console.error('Failed to parse data', e);
+    // クローラー用に少し遅延させてからリダイレクト
+    setTimeout(function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const data = urlParams.get('data');
+      if (data) {
+        try {
+          const diagramData = JSON.parse(decodeURIComponent(data));
+          localStorage.setItem('relationshipDiagram', JSON.stringify(diagramData));
+        } catch (e) {
+          console.error('Failed to parse data', e);
+        }
       }
-    }
-    window.location.href = '/';
+      window.location.href = '/';
+    }, 500);
   </script>
+
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e3f2fd 100%);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      max-width: 500px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+    p {
+      color: #666;
+      margin-bottom: 15px;
+    }
+    a {
+      color: #2196F3;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #2196F3;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
-  <div style="font-family: sans-serif; text-align: center; padding: 50px;">
-    <h1>リダイレクト中...</h1>
+  <div class="container">
+    <div class="spinner"></div>
+    <h1>相関図を読み込んでいます...</h1>
     <p>相関図ジェネレーターに移動します。</p>
-    <p><a href="/">こちらをクリック</a>してください。</p>
+    <p><a href="/">自動的に移動しない場合はこちらをクリック</a></p>
   </div>
 </body>
 </html>`;
@@ -68,9 +136,11 @@ export default async function handler(request) {
     return new Response(html, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
       },
     });
   } catch (error) {
+    console.error('Error generating share page:', error);
     return Response.redirect('https://soukanzu.jp/', 302);
   }
 }
