@@ -27,7 +27,7 @@ export default async function handler(request) {
     }
 
     // Cloudflare Workerを直接使用
-    const ogImageUrl = `https://soukanzu-og-image.tomimoe1226.workers.dev?data=${encodeURIComponent(data)}`;
+    const ogImageUrl = `https://soukanzu-og-image.soukanzu.workers.dev?data=${encodeURIComponent(data)}`;
 
     const html = `<!DOCTYPE html>
 <html lang="ja">

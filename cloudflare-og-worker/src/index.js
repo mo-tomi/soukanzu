@@ -29,22 +29,48 @@ export default {
     }
 
     if (!data) {
-      return new Response('Missing data parameter', { status: 400 });
+      return new Response('Missing data parameter', {
+        status: 400,
+        headers: corsHeaders
+      });
     }
 
     try {
-      // Decode diagram data
-      const diagramData = JSON.parse(decodeURIComponent(data));
+      // Decode diagram data - handle both encoded and non-encoded data
+      let diagramData;
+      try {
+        // First try parsing without decoding
+        diagramData = JSON.parse(data);
+      } catch (parseError) {
+        // If that fails, try decoding first
+        diagramData = JSON.parse(decodeURIComponent(data));
+      }
+
       const { people = [], relationships = [] } = diagramData;
 
       const scaleX = 1200 / 800;
       const scaleY = 630 / 500;
 
-      // Fetch font for Satori
-      const fontResponse = await fetch('https://fonts.gstatic.com/s/notosansjp/v52/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEi75vY0rw-oME.ttf');
+      // Fetch font for Satori with timeout
+      console.log('Fetching font...');
+      const fontController = new AbortController();
+      const fontTimeout = setTimeout(() => fontController.abort(), 10000);
+
+      const fontResponse = await fetch(
+        'https://fonts.gstatic.com/s/notosansjp/v52/-F6jfjtqLzI2JPCgQBnw7HFyzSD-AsregP8VFBEi75vY0rw-oME.ttf',
+        { signal: fontController.signal }
+      );
+      clearTimeout(fontTimeout);
+
+      if (!fontResponse.ok) {
+        throw new Error(`Font fetch failed: ${fontResponse.status}`);
+      }
+
       const fontData = await fontResponse.arrayBuffer();
+      console.log('Font loaded, size:', fontData.byteLength);
 
       // Generate SVG using Satori
+      console.log('Generating SVG...');
       const svg = await satori(
         {
           type: 'div',
@@ -57,7 +83,7 @@ export default {
               background: 'linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e3f2fd 100%)',
             },
             children: [
-              // 関係性の線と矢印を先に描画（背景レイヤー）
+              // 関係性の線と矢印
               ...relationships.map(rel => {
                 const fromPerson = people.find(p => p.id === rel.from);
                 const toPerson = people.find(p => p.id === rel.to);
@@ -68,26 +94,21 @@ export default {
                 const toX = toPerson.x * scaleX;
                 const toY = toPerson.y * scaleY;
 
-                // 角度と距離を計算
                 const angle = Math.atan2(toY - fromY, toX - fromX);
-                const distance = Math.sqrt((toX - fromX) ** 2 + (toY - fromY) ** 2);
                 const radius = 60;
 
-                // 始点と終点（円の外側から開始）
                 const startX = fromX + Math.cos(angle) * radius;
                 const startY = fromY + Math.sin(angle) * radius;
                 const endX = toX - Math.cos(angle) * radius;
                 const endY = toY - Math.sin(angle) * radius;
 
-                // 線の長さ
                 const lineLength = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
 
-                // ラベルの位置（線の中央より少し上）
                 const midX = (startX + endX) / 2;
                 const midY = (startY + endY) / 2 - 20;
 
                 return [
-                  // 矢印の線
+                  // 線
                   {
                     type: 'div',
                     props: {
@@ -104,7 +125,7 @@ export default {
                       },
                     },
                   },
-                  // 矢印の先端
+                  // 矢印
                   {
                     type: 'div',
                     props: {
@@ -123,7 +144,7 @@ export default {
                       },
                     },
                   },
-                  // 関係性のラベル
+                  // ラベル
                   rel.label ? {
                     type: 'div',
                     props: {
@@ -146,14 +167,14 @@ export default {
                   } : null,
                 ];
               }).filter(Boolean).flat().filter(Boolean),
-              // 人物の円と名前を描画（前面レイヤー）
+              // 人物
               ...people.map((person) => {
                 const x = person.x * scaleX;
                 const y = person.y * scaleY;
                 const radius = 50;
 
                 return [
-                  // 人物の円
+                  // 円
                   {
                     type: 'div',
                     props: {
@@ -177,7 +198,7 @@ export default {
                       children: person.name.charAt(0),
                     },
                   },
-                  // 名前のラベル
+                  // 名前
                   {
                     type: 'div',
                     props: {
@@ -231,6 +252,7 @@ export default {
         }
       );
 
+      console.log('Converting to PNG...');
       // Convert SVG to PNG using resvg
       const resvg = new Resvg(svg, {
         fitTo: {
@@ -241,6 +263,7 @@ export default {
       const pngData = resvg.render();
       const pngBuffer = pngData.asPng();
 
+      console.log('Success! PNG size:', pngBuffer.length);
       return new Response(pngBuffer, {
         headers: {
           ...corsHeaders,
@@ -249,9 +272,17 @@ export default {
         },
       });
     } catch (error) {
-      return new Response('Error generating image: ' + error.message, {
+      console.error('Error generating image:', error);
+      return new Response(JSON.stringify({
+        error: 'Error generating image',
+        message: error.message,
+        stack: error.stack
+      }), {
         status: 500,
-        headers: corsHeaders,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
       });
     }
   },
