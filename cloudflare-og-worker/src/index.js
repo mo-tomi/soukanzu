@@ -20,6 +20,19 @@ async function generateCacheKey(data) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// SVGパスで矢印を作成
+function createArrowPath(startX, startY, endX, endY) {
+  const angle = Math.atan2(endY - startY, endX - startX);
+  const arrowSize = 14;
+
+  const arrowTip1X = endX - arrowSize * Math.cos(angle - Math.PI / 6);
+  const arrowTip1Y = endY - arrowSize * Math.sin(angle - Math.PI / 6);
+  const arrowTip2X = endX - arrowSize * Math.cos(angle + Math.PI / 6);
+  const arrowTip2Y = endY - arrowSize * Math.sin(angle + Math.PI / 6);
+
+  return `M ${startX} ${startY} L ${endX} ${endY} M ${endX} ${endY} L ${arrowTip1X} ${arrowTip1Y} M ${endX} ${endY} L ${arrowTip2X} ${arrowTip2Y}`;
+}
+
 export default {
   async fetch(request, env) {
     await ensureWasmInitialized();
@@ -98,6 +111,104 @@ export default {
       const fontData = await fontResponse.arrayBuffer();
       console.log('Font loaded, size:', fontData.byteLength);
 
+      // 関係性のパスを生成
+      const relationshipPaths = [];
+      const relationshipLabels = [];
+      const processedPairs = new Set();
+
+      relationships.forEach(rel => {
+        const fromPerson = people.find(p => p.id === rel.from);
+        const toPerson = people.find(p => p.id === rel.to);
+        if (!fromPerson || !toPerson) return;
+
+        const fromX = fromPerson.x * scaleX;
+        const fromY = fromPerson.y * scaleY;
+        const toX = toPerson.x * scaleX;
+        const toY = toPerson.y * scaleY;
+
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+        const avatarRadius = 35 * scaleX;
+        const nameHeight = 20 * scaleY;
+        const buffer = 10 * scaleY;
+        const avoidanceDistance = avatarRadius + nameHeight + buffer;
+
+        const reverseRel = relationships.find(r => r.from === rel.to && r.to === rel.from);
+        const isBidirectional = !!reverseRel;
+        const pairKey = `${Math.min(rel.from, rel.to)}-${Math.max(rel.from, rel.to)}`;
+
+        if (isBidirectional && !processedPairs.has(pairKey)) {
+          processedPairs.add(pairKey);
+
+          const lineOffset = 12 * scaleX;
+          const perpAngle = angle + Math.PI / 2;
+
+          // 1本目の線（from -> to）
+          const startX1 = fromX + Math.cos(angle) * avoidanceDistance + Math.cos(perpAngle) * lineOffset;
+          const startY1 = fromY + Math.sin(angle) * avoidanceDistance + Math.sin(perpAngle) * lineOffset;
+          const endX1 = toX - Math.cos(angle) * avoidanceDistance + Math.cos(perpAngle) * lineOffset;
+          const endY1 = toY - Math.sin(angle) * avoidanceDistance + Math.sin(perpAngle) * lineOffset;
+
+          relationshipPaths.push(createArrowPath(startX1, startY1, endX1, endY1));
+
+          // ラベル1
+          const labelRatio1 = 0.35;
+          const labelX1 = startX1 + (endX1 - startX1) * labelRatio1 + Math.cos(perpAngle) * 25 * scaleX;
+          const labelY1 = startY1 + (endY1 - startY1) * labelRatio1 + Math.sin(perpAngle) * 25 * scaleY;
+
+          if (rel.label) {
+            relationshipLabels.push({
+              text: rel.label,
+              x: labelX1,
+              y: labelY1,
+            });
+          }
+
+          // 2本目の線（to -> from）
+          const startX2 = toX + Math.cos(angle + Math.PI) * avoidanceDistance - Math.cos(perpAngle) * lineOffset;
+          const startY2 = toY + Math.sin(angle + Math.PI) * avoidanceDistance - Math.sin(perpAngle) * lineOffset;
+          const endX2 = fromX - Math.cos(angle + Math.PI) * avoidanceDistance - Math.cos(perpAngle) * lineOffset;
+          const endY2 = fromY - Math.sin(angle + Math.PI) * avoidanceDistance - Math.sin(perpAngle) * lineOffset;
+
+          relationshipPaths.push(createArrowPath(startX2, startY2, endX2, endY2));
+
+          // ラベル2
+          if (reverseRel.label) {
+            const labelRatio2 = 0.35;
+            const labelX2 = startX2 + (endX2 - startX2) * labelRatio2 - Math.cos(perpAngle) * 25 * scaleX;
+            const labelY2 = startY2 + (endY2 - startY2) * labelRatio2 - Math.sin(perpAngle) * 25 * scaleY;
+
+            relationshipLabels.push({
+              text: reverseRel.label,
+              x: labelX2,
+              y: labelY2,
+            });
+          }
+        } else if (!isBidirectional) {
+          // 単方向の線
+          const startX = fromX + Math.cos(angle) * avoidanceDistance;
+          const startY = fromY + Math.sin(angle) * avoidanceDistance;
+          const endX = toX - Math.cos(angle) * avoidanceDistance;
+          const endY = toY - Math.sin(angle) * avoidanceDistance;
+
+          relationshipPaths.push(createArrowPath(startX, startY, endX, endY));
+
+          // ラベル
+          if (rel.label) {
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2 - 20 * scaleY;
+
+            relationshipLabels.push({
+              text: rel.label,
+              x: midX,
+              y: midY,
+            });
+          }
+        }
+      });
+
+      // SVGパスを結合
+      const combinedPath = relationshipPaths.join(' ');
+
       // Generate SVG using Satori
       console.log('Generating SVG...');
       const svg = await satori(
@@ -112,97 +223,59 @@ export default {
               background: 'linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e3f2fd 100%)',
             },
             children: [
-              // 関係性の線と矢印
-              ...relationships.map(rel => {
-                const fromPerson = people.find(p => p.id === rel.from);
-                const toPerson = people.find(p => p.id === rel.to);
-                if (!fromPerson || !toPerson) return null;
-
-                const fromX = fromPerson.x * scaleX;
-                const fromY = fromPerson.y * scaleY;
-                const toX = toPerson.x * scaleX;
-                const toY = toPerson.y * scaleY;
-
-                const angle = Math.atan2(toY - fromY, toX - fromX);
-                const avatarRadius = 35 * scaleX; // 元のブラウザコードに合わせる
-                const nameHeight = 20 * scaleY;
-                const buffer = 10 * scaleY;
-                const avoidanceDistance = avatarRadius + nameHeight + buffer;
-
-                const startX = fromX + Math.cos(angle) * avoidanceDistance;
-                const startY = fromY + Math.sin(angle) * avoidanceDistance;
-                const endX = toX - Math.cos(angle) * avoidanceDistance;
-                const endY = toY - Math.sin(angle) * avoidanceDistance;
-
-                const lineLength = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
-
-                const midX = (startX + endX) / 2;
-                const midY = (startY + endY) / 2 - 20 * scaleY;
-                const arrowSize = 10 * scaleX;
-
-                return [
-                  // 線
-                  {
-                    type: 'div',
-                    props: {
-                      style: {
-                        position: 'absolute',
-                        left: `${startX}px`,
-                        top: `${startY}px`,
-                        width: `${lineLength}px`,
-                        height: `${2 * scaleY}px`,
-                        background: '#666',
-                        transform: `rotate(${angle}rad)`,
-                        transformOrigin: '0 50%',
-                      },
-                    },
+              // SVGで線と矢印を描画
+              {
+                type: 'svg',
+                props: {
+                  width: '1200',
+                  height: '630',
+                  viewBox: '0 0 1200 630',
+                  style: {
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
                   },
-                  // 矢印
-                  {
-                    type: 'div',
-                    props: {
-                      style: {
-                        position: 'absolute',
-                        left: `${endX}px`,
-                        top: `${endY}px`,
-                        width: 0,
-                        height: 0,
-                        borderLeft: `${arrowSize}px solid #666`,
-                        borderTop: `${arrowSize * 0.67}px solid transparent`,
-                        borderBottom: `${arrowSize * 0.67}px solid transparent`,
-                        transform: `rotate(${angle}rad) translateX(-${arrowSize}px)`,
-                        transformOrigin: '0 50%',
+                  children: [
+                    {
+                      type: 'path',
+                      props: {
+                        d: combinedPath,
+                        stroke: '#666',
+                        'stroke-width': '3',
+                        fill: 'none',
+                        'stroke-linecap': 'round',
+                        'stroke-linejoin': 'round',
                       },
                     },
+                  ],
+                },
+              },
+              // ラベル
+              ...relationshipLabels.map(label => ({
+                type: 'div',
+                props: {
+                  style: {
+                    position: 'absolute',
+                    left: `${label.x}px`,
+                    top: `${label.y}px`,
+                    transform: 'translate(-50%, -50%)',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    padding: `${6 * scaleY}px ${12 * scaleX}px`,
+                    borderRadius: `${6 * scaleX}px`,
+                    fontSize: `${14 * scaleX}px`,
+                    fontWeight: 'bold',
+                    color: '#333',
+                    border: `${1 * scaleX}px solid #e0e0e0`,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
                   },
-                  // ラベル
-                  rel.label ? {
-                    type: 'div',
-                    props: {
-                      style: {
-                        position: 'absolute',
-                        left: `${midX}px`,
-                        top: `${midY}px`,
-                        transform: 'translate(-50%, -50%)',
-                        background: 'rgba(255, 255, 255, 0.95)',
-                        padding: `${6 * scaleY}px ${12 * scaleX}px`,
-                        borderRadius: `${6 * scaleX}px`,
-                        fontSize: `${14 * scaleX}px`,
-                        fontWeight: 'bold',
-                        color: '#333',
-                        border: `${1 * scaleX}px solid #e0e0e0`,
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
-                      },
-                      children: rel.label,
-                    },
-                  } : null,
-                ];
-              }).filter(Boolean).flat().filter(Boolean),
+                  children: label.text,
+                },
+              })),
               // 人物
               ...people.map((person) => {
                 const x = person.x * scaleX;
                 const y = person.y * scaleY;
-                const radius = 35 * scaleX; // 元のブラウザコードに合わせて35px
+                const radius = 35 * scaleX;
 
                 return [
                   // 円
@@ -217,14 +290,14 @@ export default {
                         height: `${radius * 2}px`,
                         borderRadius: '50%',
                         background: person.color || '#3b82f6',
-                        border: `${3 * scaleX}px solid white`,
+                        border: `${4 * scaleX}px solid white`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: 'white',
-                        fontSize: `${20 * scaleX}px`, // 元のコードに合わせて20px
+                        fontSize: `${20 * scaleX}px`,
                         fontWeight: 'bold',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                       },
                       children: person.name.charAt(0),
                     },
@@ -236,9 +309,9 @@ export default {
                       style: {
                         position: 'absolute',
                         left: `${x}px`,
-                        top: `${y + 45 * scaleY}px`, // 元のブラウザコードに合わせて45px
+                        top: `${y + 45 * scaleY}px`,
                         transform: 'translateX(-50%)',
-                        background: 'transparent', // 背景を透明に
+                        background: 'transparent',
                         fontSize: `${16 * scaleX}px`,
                         fontWeight: 'bold',
                         color: '#333',
