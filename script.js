@@ -1242,7 +1242,7 @@ function shareTwitter() {
         const suffix = people.length > 2 ? `ほか${people.length}人` : '';
         text = `${names}${suffix}の相関図を作成しました！`;
     }
-    text += ' #相関図ジェネレーター';
+    text += ' #相関図 #人間関係 #相関図ジェネレーター';
 
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
 }
