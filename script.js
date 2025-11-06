@@ -254,6 +254,9 @@ function renderRelationList() {
             <span>→</span>
             <span style="color: ${toPerson.color}; font-weight: 600;">${toPerson.name}</span>
         `;
+        arrow.title = 'クリックして逆方向にする';
+        arrow.style.cursor = 'pointer';
+        arrow.addEventListener('click', () => reverseRelation(rel.id));
 
         const label = document.createElement('div');
         label.className = 'relation-label';
@@ -262,6 +265,21 @@ function renderRelationList() {
 
         info.appendChild(arrow);
         info.appendChild(label);
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '8px';
+
+        const editBtn = document.createElement('div');
+        editBtn.className = 'edit-btn';
+        editBtn.innerHTML = `
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+        `;
+        editBtn.title = '相手を変更';
+        editBtn.style.cursor = 'pointer';
+        editBtn.addEventListener('click', () => editRelationTarget(rel.id));
 
         const deleteBtn = document.createElement('div');
         deleteBtn.className = 'delete-btn';
@@ -272,8 +290,11 @@ function renderRelationList() {
         `;
         deleteBtn.addEventListener('click', () => deleteRelation(rel.id));
 
+        actions.appendChild(editBtn);
+        actions.appendChild(deleteBtn);
+
         div.appendChild(info);
-        div.appendChild(deleteBtn);
+        div.appendChild(actions);
         list.appendChild(div);
     });
 }
@@ -937,6 +958,78 @@ function editRelationLabel(id) {
         relation.label = newLabel.trim();
         render();
         saveToLocalStorage();
+    }
+}
+
+function reverseRelation(id) {
+    const relation = relationships.find(r => r.id === id);
+    if (relation) {
+        // fromとtoを入れ替える
+        const temp = relation.from;
+        relation.from = relation.to;
+        relation.to = temp;
+        render();
+        saveToLocalStorage();
+    }
+}
+
+function editRelationTarget(id) {
+    const relation = relationships.find(r => r.id === id);
+    if (!relation) return;
+
+    const fromPerson = people.find(p => p.id === relation.from);
+    const toPerson = people.find(p => p.id === relation.to);
+
+    // 選択肢を作成
+    let message = `現在: ${fromPerson.name} → ${toPerson.name}\n\n変更する相手を選択してください:\n\n`;
+    message += `1. 「から」を変更（${fromPerson.name} → 別の人）\n`;
+    message += `2. 「へ」を変更（別の人 → ${toPerson.name}）\n`;
+    message += `3. キャンセル`;
+
+    const choice = prompt(message, '1');
+
+    if (choice === '1') {
+        // 「から」を変更
+        const availablePeople = people.filter(p => p.id !== relation.from);
+        if (availablePeople.length === 0) {
+            alert('他に人物がいません');
+            return;
+        }
+
+        let peopleList = '新しい「から」の人物を選択してください:\n\n';
+        availablePeople.forEach((p, index) => {
+            peopleList += `${index + 1}. ${p.name}\n`;
+        });
+
+        const selectedIndex = prompt(peopleList, '1');
+        const newFromIndex = parseInt(selectedIndex) - 1;
+
+        if (newFromIndex >= 0 && newFromIndex < availablePeople.length) {
+            relation.from = availablePeople[newFromIndex].id;
+            render();
+            saveToLocalStorage();
+        }
+    } else if (choice === '2') {
+        // 「へ」を変更
+        const availablePeople = people.filter(p => p.id !== relation.to);
+        if (availablePeople.length === 0) {
+            alert('他に人物がいません');
+            return;
+        }
+
+        let peopleList = '新しい「へ」の人物を選択してください:\n\n';
+        availablePeople.forEach((p, index) => {
+            peopleList += `${index + 1}. ${p.name}\n`;
+        });
+
+        const selectedIndex = prompt(peopleList, '1');
+        const newToIndex = parseInt(selectedIndex) - 1;
+
+        if (newToIndex >= 0 && newToIndex < availablePeople.length) {
+            relation.to = availablePeople[newToIndex].id;
+            render();
+            saveToLocalStorage();
+        }
     }
 }
 

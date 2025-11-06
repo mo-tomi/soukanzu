@@ -414,6 +414,34 @@ body {
     color: #1976D2;
 }
 
+.edit-btn {
+    color: #2196F3;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    min-height: 40px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.edit-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.edit-btn:hover {
+    background: rgba(33, 150, 243, 0.1);
+}
+
+.edit-btn:active {
+    background: rgba(33, 150, 243, 0.2);
+    transform: scale(0.95);
+}
+
 .delete-btn {
     color: #f44336;
     cursor: pointer;
