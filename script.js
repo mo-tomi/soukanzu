@@ -22,6 +22,7 @@ let maxScale = 3.0;
 let offsetX = 0;
 let offsetY = 0;
 let lastTouchDistance = 0;
+let initialPinchDistance = 0;
 let addRelationMode = false;
 let relationFrom = null;
 let relationTo = null;
@@ -726,13 +727,19 @@ function handleCanvasMouseUp() {
     canvas.style.cursor = 'default';
 }
 
+function getDistance(touch1, touch2) {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
 function handleTouchStart(e) {
     e.preventDefault();
 
     if (e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        lastTouchDistance = Math.sqrt(dx * dx + dy * dy);
+        // ピンチジェスチャーの開始
+        initialPinchDistance = getDistance(e.touches[0], e.touches[1]);
+        lastTouchDistance = initialPinchDistance;
         return;
     }
 
@@ -772,19 +779,18 @@ function handleTouchMove(e) {
     e.preventDefault();
 
     if (e.touches.length === 2) {
-        const dx = e.touches[0].clientX - e.touches[1].clientX;
-        const dy = e.touches[0].clientY - e.touches[1].clientY;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        // ピンチジェスチャーの処理を改善
+        const currentDistance = getDistance(e.touches[0], e.touches[1]);
 
-        if (lastTouchDistance > 0) {
-            const delta = distance - lastTouchDistance;
-            const zoomFactor = 1 + (delta * 0.01);
-            const newScale = Math.max(minScale, Math.min(maxScale, scale * zoomFactor));
+        if (lastTouchDistance > 0 && initialPinchDistance > 0) {
+            // より滑らかなズーム
+            const scaleRatio = currentDistance / initialPinchDistance;
+            const newScale = Math.max(minScale, Math.min(maxScale, scaleRatio));
             scale = newScale;
             renderCanvas();
         }
 
-        lastTouchDistance = distance;
+        lastTouchDistance = currentDistance;
         return;
     }
 
@@ -819,6 +825,7 @@ function handleTouchEnd(e) {
     dragging = null;
     draggingLabel = null;
     lastTouchDistance = 0;
+    initialPinchDistance = 0;
 }
 
 function handleWheel(e) {

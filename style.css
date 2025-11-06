@@ -1293,4 +1293,59 @@ select:focus {
     .step-content h3 {
         font-size: 1.1em;
     }
+
+    /* モバイル専用UI改善 */
+    .btn {
+        min-height: 48px;
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+
+    .person-item {
+        padding: 16px;
+        min-height: 68px;
+    }
+
+    .relation-item {
+        padding: 16px;
+        min-height: 68px;
+    }
+
+    .person-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3em;
+    }
+
+    .person-name,
+    .relation-label {
+        font-size: 16px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+
+    .delete-btn,
+    .edit-btn {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .input-field {
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .color-option {
+        width: 44px;
+        height: 44px;
+    }
+
+    .zoom-btn {
+        min-width: 48px;
+        min-height: 48px;
+    }
 }
