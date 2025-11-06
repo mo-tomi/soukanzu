@@ -25,6 +25,8 @@ let lastTouchDistance = 0;
 let addRelationMode = false;
 let relationFrom = null;
 let relationTo = null;
+let animationFrameId = null;
+let saveTimeout = null;
 
 window.onload = function() {
     canvas = document.getElementById('canvas');
@@ -167,9 +169,15 @@ function renderColorPicker() {
 }
 
 function render() {
-    renderPersonList();
-    renderRelationList();
-    renderCanvas();
+    // requestAnimationFrameで描画を最適化
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    animationFrameId = requestAnimationFrame(() => {
+        renderPersonList();
+        renderRelationList();
+        renderCanvas();
+    });
 }
 
 function renderPersonList() {
@@ -679,7 +687,7 @@ function handleCanvasMouseMove(e) {
             rel.labelOffsetX = x;
             rel.labelOffsetY = y;
             renderCanvas();
-            saveToLocalStorage();
+            debouncedSave();
         }
     } else if (dragging !== null) {
         const person = people.find(p => p.id === dragging);
@@ -687,7 +695,7 @@ function handleCanvasMouseMove(e) {
             person.x = Math.max(40, Math.min(canvasWidth - 40, x));
             person.y = Math.max(60, Math.min(canvasHeight - 60, y));
             renderCanvas();
-            saveToLocalStorage();
+            debouncedSave();
         }
     } else {
         let hovering = false;
@@ -791,6 +799,7 @@ function handleTouchMove(e) {
             rel.labelOffsetX = x;
             rel.labelOffsetY = y;
             renderCanvas();
+            debouncedSave();
         }
     } else if (dragging !== null) {
         const person = people.find(p => p.id === dragging);
@@ -798,6 +807,7 @@ function handleTouchMove(e) {
             person.x = Math.max(40, Math.min(canvasWidth - 40, x));
             person.y = Math.max(60, Math.min(canvasHeight - 60, y));
             renderCanvas();
+            debouncedSave();
         }
     }
 }
@@ -1456,6 +1466,16 @@ function saveToLocalStorage() {
     localStorage.setItem('relationshipDiagram', JSON.stringify(data));
     showAutoSaveIndicator();
     updateOGPTags();
+}
+
+function debouncedSave() {
+    // デバウンス処理で自動保存を最適化
+    if (saveTimeout) {
+        clearTimeout(saveTimeout);
+    }
+    saveTimeout = setTimeout(() => {
+        saveToLocalStorage();
+    }, 500);
 }
 
 function updateOGPTags() {
