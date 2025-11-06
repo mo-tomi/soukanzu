@@ -25,6 +25,7 @@ export default {
     await ensureWasmInitialized();
     const url = new URL(request.url);
     const data = url.searchParams.get('data');
+    // vパラメータはキャッシュバスティング用（画像生成には使用しない）
 
     // CORS headers
     const corsHeaders = {

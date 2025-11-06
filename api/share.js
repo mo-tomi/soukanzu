@@ -5,6 +5,7 @@ export const config = {
 export default async function handler(request) {
   const { searchParams } = new URL(request.url);
   const data = searchParams.get('data');
+  const timestamp = searchParams.get('id') || Date.now(); // シェアURLのタイムスタンプを取得
 
   if (!data) {
     return Response.redirect('https://soukanzu.jp/', 302);
@@ -26,8 +27,8 @@ export default async function handler(request) {
       description = `${people.length}人の人間関係を可視化した相関図です`;
     }
 
-    // Cloudflare Workerを直接使用
-    const ogImageUrl = `https://soukanzu-og-image.soukanzu.workers.dev?data=${encodeURIComponent(data)}`;
+    // Cloudflare Workerを直接使用 - キャッシュバスティングのためタイムスタンプを追加
+    const ogImageUrl = `https://soukanzu-og-image.soukanzu.workers.dev?data=${encodeURIComponent(data)}&v=${timestamp}`;
 
     const html = `<!DOCTYPE html>
 <html lang="ja">
