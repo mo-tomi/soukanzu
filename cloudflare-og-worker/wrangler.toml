@@ -1,3 +1,7 @@
 name = "soukanzu-og-image"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
+
+[[kv_namespaces]]
+binding = "OG_IMAGE_CACHE"
+id = "4e850343d84a427a9f7903ce34b8735c"

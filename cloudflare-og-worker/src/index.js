@@ -1,6 +1,7 @@
 import satori from 'satori';
 import { Resvg, initWasm } from '@resvg/resvg-wasm';
 import resvgWasm from '@resvg/resvg-wasm/index_bg.wasm';
+import LZString from 'lz-string';
 
 let initialized = false;
 
@@ -37,7 +38,8 @@ export default {
   async fetch(request, env) {
     await ensureWasmInitialized();
     const url = new URL(request.url);
-    const data = url.searchParams.get('data');
+    const compressedData = url.searchParams.get('d'); // 圧縮データ（新形式）
+    const uncompressedData = url.searchParams.get('data'); // 非圧縮データ（旧形式）
     // vパラメータはキャッシュバスティング用（画像生成には使用しない）
 
     // CORS headers
@@ -51,16 +53,19 @@ export default {
       return new Response(null, { headers: corsHeaders });
     }
 
-    if (!data) {
+    if (!compressedData && !uncompressedData) {
       return new Response('Missing data parameter', {
         status: 400,
         headers: corsHeaders
       });
     }
 
+    // キャッシュキーの生成（圧縮・非圧縮両方に対応）
+    const dataForCacheKey = compressedData || uncompressedData;
+
     // KVキャッシュをチェック
     if (env.OG_IMAGE_CACHE) {
-      const cacheKey = await generateCacheKey(data);
+      const cacheKey = await generateCacheKey(dataForCacheKey);
       const cachedImage = await env.OG_IMAGE_CACHE.get(cacheKey, 'arrayBuffer');
 
       if (cachedImage) {
@@ -78,14 +83,27 @@ export default {
     }
 
     try {
-      // Decode diagram data - handle both encoded and non-encoded data
+      // Decode diagram data
       let diagramData;
-      try {
-        // First try parsing without decoding
-        diagramData = JSON.parse(data);
-      } catch (parseError) {
-        // If that fails, try decoding first
-        diagramData = JSON.parse(decodeURIComponent(data));
+
+      if (compressedData) {
+        // 圧縮データをデコード
+        try {
+          const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
+          diagramData = JSON.parse(decompressed);
+        } catch (error) {
+          console.error('Failed to decompress data:', error);
+          throw new Error('Invalid compressed data');
+        }
+      } else {
+        // 非圧縮データ（旧形式・互換性のため）
+        try {
+          // First try parsing without decoding
+          diagramData = JSON.parse(uncompressedData);
+        } catch (parseError) {
+          // If that fails, try decoding first
+          diagramData = JSON.parse(decodeURIComponent(uncompressedData));
+        }
       }
 
       const { people = [], relationships = [] } = diagramData;
@@ -368,7 +386,7 @@ export default {
 
       // KVにキャッシュを保存
       if (env.OG_IMAGE_CACHE) {
-        const cacheKey = await generateCacheKey(data);
+        const cacheKey = await generateCacheKey(dataForCacheKey);
         // 30日間キャッシュ（2592000秒）
         await env.OG_IMAGE_CACHE.put(cacheKey, pngBuffer, {
           expirationTtl: 2592000,

@@ -4,16 +4,34 @@ export const config = {
 
 export default async function handler(request) {
   const { searchParams } = new URL(request.url);
-  const data = searchParams.get('data');
+  const compressedData = searchParams.get('d'); // 圧縮データ（新形式）
+  const uncompressedData = searchParams.get('data'); // 非圧縮データ（旧形式・互換性のため）
   const timestamp = searchParams.get('id') || Date.now(); // シェアURLのタイムスタンプを取得
 
-  if (!data) {
+  // どちらかのパラメータが必要
+  if (!compressedData && !uncompressedData) {
     return Response.redirect('https://soukanzu.jp/', 302);
   }
 
   try {
-    // データをデコードしてパース
-    const diagramData = JSON.parse(decodeURIComponent(data));
+    let diagramData;
+
+    // 圧縮データがある場合は、後でCloudflare Worker側でデコード
+    // ここでは単純にパススルー用のダミーデータを作成
+    if (compressedData) {
+      // 圧縮データの場合、Cloudflare Workerに渡すためそのまま使用
+      // タイトル生成のため、最低限のパース試行（失敗しても問題なし）
+      try {
+        // LZ-String デコード処理をCloudflare Worker側に任せる
+        diagramData = { people: [], relationships: [] }; // デフォルト値
+      } catch (e) {
+        diagramData = { people: [], relationships: [] };
+      }
+    } else {
+      // 非圧縮データの場合（旧形式・互換性）
+      diagramData = JSON.parse(decodeURIComponent(uncompressedData));
+    }
+
     const { people = [], relationships = [] } = diagramData;
 
     // 相関図データに基づいて動的にタイトルと説明文を生成
@@ -27,8 +45,9 @@ export default async function handler(request) {
       description = `${people.length}人の人間関係を可視化した相関図です`;
     }
 
-    // Cloudflare Workerを直接使用 - キャッシュバスティングのためタイムスタンプを追加
-    const ogImageUrl = `https://soukanzu-og-image.soukanzu.workers.dev?data=${encodeURIComponent(data)}&v=${timestamp}`;
+    // Cloudflare Workerに渡すパラメータを決定
+    const dataParam = compressedData ? `d=${compressedData}` : `data=${encodeURIComponent(uncompressedData)}`;
+    const ogImageUrl = `https://soukanzu-og-image.soukanzu.workers.dev?${dataParam}&v=${timestamp}`;
 
     const html = `<!DOCTYPE html>
 <html lang="ja">

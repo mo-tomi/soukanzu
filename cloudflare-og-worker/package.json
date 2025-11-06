@@ -7,8 +7,9 @@
     "deploy": "wrangler deploy"
   },
   "dependencies": {
-    "satori": "^0.10.9",
-    "@resvg/resvg-wasm": "^2.4.1"
+    "@resvg/resvg-wasm": "^2.4.1",
+    "lz-string": "^1.5.0",
+    "satori": "^0.10.9"
   },
   "devDependencies": {
     "wrangler": "^3.22.1"

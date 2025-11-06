@@ -1230,9 +1230,10 @@ function showAutoSaveIndicator() {
 
 function shareTwitter() {
     const data = { people, relationships };
-    const encodedData = encodeURIComponent(JSON.stringify(data));
+    // LZ-Stringで圧縮してBase64エンコード
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
     const timestamp = Date.now();
-    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&d=${compressed}`;
 
     // 人物名を含めたシェアテキストを生成
     let text = '相関図を作成しました！';
@@ -1248,18 +1249,20 @@ function shareTwitter() {
 
 function shareFacebook() {
     const data = { people, relationships };
-    const encodedData = encodeURIComponent(JSON.stringify(data));
+    // LZ-Stringで圧縮してBase64エンコード
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
     const timestamp = Date.now();
-    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&d=${compressed}`;
 
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
 }
 
 function shareLine() {
     const data = { people, relationships };
-    const encodedData = encodeURIComponent(JSON.stringify(data));
+    // LZ-Stringで圧縮してBase64エンコード
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
     const timestamp = Date.now();
-    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&d=${compressed}`;
 
     let text = '相関図を作成しました！';
     if (people.length > 0) {
@@ -1298,19 +1301,21 @@ function shareInstagram() {
 
 function shareReddit() {
     const data = { people, relationships };
-    const encodedData = encodeURIComponent(JSON.stringify(data));
+    // LZ-Stringで圧縮してBase64エンコード
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
     const timestamp = Date.now();
-    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&d=${compressed}`;
     const text = '相関図を作成しました！';
     window.open(`https://www.reddit.com/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(text)}`, '_blank');
 }
 
 function sharePinterest() {
     const data = { people, relationships };
-    const encodedData = encodeURIComponent(JSON.stringify(data));
+    // LZ-Stringで圧縮してBase64エンコード
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(data));
     const timestamp = Date.now();
-    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&data=${encodedData}`;
-    const imageUrl = `${window.location.origin}/api/og-image?data=${encodedData}`;
+    const shareUrl = `${window.location.origin}/api/share?id=${timestamp}&d=${compressed}`;
+    const imageUrl = `${window.location.origin}/api/og-image?d=${compressed}`;
     const description = '相関図を作成しました！';
     window.open(`https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&description=${encodeURIComponent(description)}&media=${encodeURIComponent(imageUrl)}`, '_blank');
 }
