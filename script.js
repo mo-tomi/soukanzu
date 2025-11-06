@@ -1096,79 +1096,215 @@ function saveAsImage() {
     exportCtx.fillStyle = 'white';
     exportCtx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-    // Draw all relationships
+    // Draw all relationships (same logic as renderCanvas)
+    const processedPairs = new Set();
+
     relationships.forEach(rel => {
-        const from = people.find(p => p.id === rel.from);
-        const to = people.find(p => p.id === rel.to);
+        const fromPerson = people.find(p => p.id === rel.from);
+        const toPerson = people.find(p => p.id === rel.to);
+        if (!fromPerson || !toPerson) return;
 
-        if (from && to) {
-            const fromX = from.x;
-            const fromY = from.y;
-            const toX = to.x;
-            const toY = to.y;
+        const reverseRel = relationships.find(r => r.from === rel.to && r.to === rel.from);
+        const isBidirectional = !!reverseRel;
 
-            // Calculate angle
-            const angle = Math.atan2(toY - fromY, toX - fromX);
+        const dx = toPerson.x - fromPerson.x;
+        const dy = toPerson.y - fromPerson.y;
+        const angle = Math.atan2(dy, dx);
 
-            // Offset start and end points to be at edge of circles
-            const radius = 50;
-            const startX = fromX + Math.cos(angle) * radius;
-            const startY = fromY + Math.sin(angle) * radius;
-            const endX = toX - Math.cos(angle) * radius;
-            const endY = toY - Math.sin(angle) * radius;
+        const avatarRadius = 35;
+        const nameHeight = 20;
+        const buffer = 10;
+        const avoidanceDistance = avatarRadius + nameHeight + buffer;
+        const arrowSize = 10;
 
-            // Draw line
-            exportCtx.strokeStyle = '#ec4899';
-            exportCtx.lineWidth = 3;
-            exportCtx.globalAlpha = 0.6;
+        if (isBidirectional) {
+            const pairKey = `${Math.min(rel.from, rel.to)}-${Math.max(rel.from, rel.to)}`;
+            if (processedPairs.has(pairKey)) return;
+            processedPairs.add(pairKey);
+
+            const lineOffset = 8;
+            const perpAngle = angle + Math.PI / 2;
+
+            // Line 1 (from -> to)
+            const startX1 = fromPerson.x + Math.cos(angle) * avoidanceDistance + Math.cos(perpAngle) * lineOffset;
+            const startY1 = fromPerson.y + Math.sin(angle) * avoidanceDistance + Math.sin(perpAngle) * lineOffset;
+            const endX1 = toPerson.x - Math.cos(angle) * avoidanceDistance + Math.cos(perpAngle) * lineOffset;
+            const endY1 = toPerson.y - Math.sin(angle) * avoidanceDistance + Math.sin(perpAngle) * lineOffset;
+
+            exportCtx.beginPath();
+            exportCtx.moveTo(startX1, startY1);
+            exportCtx.lineTo(endX1, endY1);
+            exportCtx.strokeStyle = '#666';
+            exportCtx.lineWidth = 2;
+            exportCtx.stroke();
+
+            // Arrow 1
+            exportCtx.beginPath();
+            exportCtx.moveTo(endX1, endY1);
+            exportCtx.lineTo(
+                endX1 - arrowSize * Math.cos(angle - Math.PI / 6),
+                endY1 - arrowSize * Math.sin(angle - Math.PI / 6)
+            );
+            exportCtx.lineTo(
+                endX1 - arrowSize * Math.cos(angle + Math.PI / 6),
+                endY1 - arrowSize * Math.sin(angle + Math.PI / 6)
+            );
+            exportCtx.closePath();
+            exportCtx.fillStyle = '#666';
+            exportCtx.fill();
+
+            // Line 2 (to -> from)
+            const startX2 = toPerson.x + Math.cos(angle + Math.PI) * avoidanceDistance - Math.cos(perpAngle) * lineOffset;
+            const startY2 = toPerson.y + Math.sin(angle + Math.PI) * avoidanceDistance - Math.sin(perpAngle) * lineOffset;
+            const endX2 = fromPerson.x - Math.cos(angle + Math.PI) * avoidanceDistance - Math.cos(perpAngle) * lineOffset;
+            const endY2 = fromPerson.y - Math.sin(angle + Math.PI) * avoidanceDistance - Math.sin(perpAngle) * lineOffset;
+
+            exportCtx.beginPath();
+            exportCtx.moveTo(startX2, startY2);
+            exportCtx.lineTo(endX2, endY2);
+            exportCtx.strokeStyle = '#666';
+            exportCtx.lineWidth = 2;
+            exportCtx.stroke();
+
+            // Arrow 2
+            const reverseAngle = angle + Math.PI;
+            exportCtx.beginPath();
+            exportCtx.moveTo(endX2, endY2);
+            exportCtx.lineTo(
+                endX2 - arrowSize * Math.cos(reverseAngle - Math.PI / 6),
+                endY2 - arrowSize * Math.sin(reverseAngle - Math.PI / 6)
+            );
+            exportCtx.lineTo(
+                endX2 - arrowSize * Math.cos(reverseAngle + Math.PI / 6),
+                endY2 - arrowSize * Math.sin(reverseAngle + Math.PI / 6)
+            );
+            exportCtx.closePath();
+            exportCtx.fillStyle = '#666';
+            exportCtx.fill();
+
+            // Labels for bidirectional
+            const labelOffset = 20;
+            const positionRatio = 0.4;
+
+            // Label 1
+            const midX1 = startX1 + (endX1 - startX1) * positionRatio;
+            const midY1 = startY1 + (endY1 - startY1) * positionRatio;
+            let labelX1 = midX1 + Math.cos(perpAngle) * labelOffset;
+            let labelY1 = midY1 + Math.sin(perpAngle) * labelOffset;
+
+            if (rel.labelOffsetX !== null && rel.labelOffsetY !== null) {
+                labelX1 = rel.labelOffsetX;
+                labelY1 = rel.labelOffsetY;
+            }
+
+            if (rel.label) {
+                exportCtx.font = 'bold 14px sans-serif';
+                exportCtx.textAlign = 'center';
+                exportCtx.textBaseline = 'middle';
+                const textMetrics = exportCtx.measureText(rel.label);
+                const textWidth = textMetrics.width;
+                const padding = 6;
+
+                exportCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                exportCtx.fillRect(labelX1 - textWidth / 2 - padding, labelY1 - 10, textWidth + padding * 2, 20);
+
+                exportCtx.strokeStyle = '#e0e0e0';
+                exportCtx.lineWidth = 1;
+                exportCtx.strokeRect(labelX1 - textWidth / 2 - padding, labelY1 - 10, textWidth + padding * 2, 20);
+
+                exportCtx.fillStyle = '#333';
+                exportCtx.fillText(rel.label, labelX1, labelY1);
+            }
+
+            // Label 2
+            const midX2 = startX1 + (endX1 - startX1) * (1 - positionRatio);
+            const midY2 = startY1 + (endY1 - startY1) * (1 - positionRatio);
+            let labelX2 = midX2 - Math.cos(perpAngle) * labelOffset;
+            let labelY2 = midY2 - Math.sin(perpAngle) * labelOffset;
+
+            if (reverseRel.labelOffsetX !== null && reverseRel.labelOffsetY !== null) {
+                labelX2 = reverseRel.labelOffsetX;
+                labelY2 = reverseRel.labelOffsetY;
+            }
+
+            if (reverseRel.label) {
+                exportCtx.font = 'bold 14px sans-serif';
+                exportCtx.textAlign = 'center';
+                exportCtx.textBaseline = 'middle';
+                const textMetrics = exportCtx.measureText(reverseRel.label);
+                const textWidth = textMetrics.width;
+                const padding = 6;
+
+                exportCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                exportCtx.fillRect(labelX2 - textWidth / 2 - padding, labelY2 - 10, textWidth + padding * 2, 20);
+
+                exportCtx.strokeStyle = '#e0e0e0';
+                exportCtx.lineWidth = 1;
+                exportCtx.strokeRect(labelX2 - textWidth / 2 - padding, labelY2 - 10, textWidth + padding * 2, 20);
+
+                exportCtx.fillStyle = '#333';
+                exportCtx.fillText(reverseRel.label, labelX2, labelY2);
+            }
+        } else {
+            // Single direction
+            const startX = fromPerson.x + Math.cos(angle) * avoidanceDistance;
+            const startY = fromPerson.y + Math.sin(angle) * avoidanceDistance;
+            const endX = toPerson.x - Math.cos(angle) * avoidanceDistance;
+            const endY = toPerson.y - Math.sin(angle) * avoidanceDistance;
+
             exportCtx.beginPath();
             exportCtx.moveTo(startX, startY);
             exportCtx.lineTo(endX, endY);
+            exportCtx.strokeStyle = '#666';
+            exportCtx.lineWidth = 2;
             exportCtx.stroke();
-            exportCtx.globalAlpha = 1.0;
 
-            // Draw arrow
-            const arrowLength = 15;
-            const arrowAngle = Math.PI / 6;
-            exportCtx.fillStyle = '#ec4899';
-            exportCtx.globalAlpha = 0.8;
+            // Arrow
             exportCtx.beginPath();
             exportCtx.moveTo(endX, endY);
             exportCtx.lineTo(
-                endX - arrowLength * Math.cos(angle - arrowAngle),
-                endY - arrowLength * Math.sin(angle - arrowAngle)
+                endX - arrowSize * Math.cos(angle - Math.PI / 6),
+                endY - arrowSize * Math.sin(angle - Math.PI / 6)
             );
             exportCtx.lineTo(
-                endX - arrowLength * Math.cos(angle + arrowAngle),
-                endY - arrowLength * Math.sin(angle + arrowAngle)
+                endX - arrowSize * Math.cos(angle + Math.PI / 6),
+                endY - arrowSize * Math.sin(angle + Math.PI / 6)
             );
             exportCtx.closePath();
+            exportCtx.fillStyle = '#666';
             exportCtx.fill();
-            exportCtx.globalAlpha = 1.0;
 
-            // Draw label
-            const midX = (fromX + toX) / 2 + (rel.labelOffsetX || 0);
-            const midY = (fromY + toY) / 2 + (rel.labelOffsetY || 0);
+            // Label
+            const perpAngle = angle + Math.PI / 2;
+            const labelOffset = 20;
+            const midX = (startX + endX) / 2;
+            const midY = (startY + endY) / 2;
+
+            let labelX = midX;
+            let labelY = midY;
+
+            if (rel.labelOffsetX !== null && rel.labelOffsetY !== null) {
+                labelX = rel.labelOffsetX;
+                labelY = rel.labelOffsetY;
+            }
 
             if (rel.label) {
-                exportCtx.font = 'bold 16px sans-serif';
-                exportCtx.fillStyle = '#333';
+                exportCtx.font = 'bold 14px sans-serif';
                 exportCtx.textAlign = 'center';
                 exportCtx.textBaseline = 'middle';
+                const textMetrics = exportCtx.measureText(rel.label);
+                const textWidth = textMetrics.width;
+                const padding = 6;
 
-                // Draw background for label
-                const metrics = exportCtx.measureText(rel.label);
-                const padding = 8;
-                exportCtx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                exportCtx.fillRect(
-                    midX - metrics.width / 2 - padding,
-                    midY - 12,
-                    metrics.width + padding * 2,
-                    24
-                );
+                exportCtx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                exportCtx.fillRect(labelX - textWidth / 2 - padding, labelY - 10, textWidth + padding * 2, 20);
+
+                exportCtx.strokeStyle = '#e0e0e0';
+                exportCtx.lineWidth = 1;
+                exportCtx.strokeRect(labelX - textWidth / 2 - padding, labelY - 10, textWidth + padding * 2, 20);
 
                 exportCtx.fillStyle = '#333';
-                exportCtx.fillText(rel.label, midX, midY);
+                exportCtx.fillText(rel.label, labelX, labelY);
             }
         }
     });
@@ -1177,7 +1313,7 @@ function saveAsImage() {
     people.forEach(person => {
         const x = person.x;
         const y = person.y;
-        const radius = 50;
+        const radius = 35;
 
         // Draw circle
         exportCtx.fillStyle = person.color || '#3b82f6';
