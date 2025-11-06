@@ -29,6 +29,68 @@ let relationTo = null;
 let animationFrameId = null;
 let saveTimeout = null;
 
+// Undo/Redo history management
+const history = {
+    states: [],
+    currentIndex: -1,
+    maxStates: 50
+};
+
+function saveState() {
+    // 現在のインデックス以降の履歴を削除（新しい分岐を作る）
+    history.states = history.states.slice(0, history.currentIndex + 1);
+
+    // 現在の状態を保存
+    const currentState = JSON.stringify({ people, relationships });
+    history.states.push(currentState);
+
+    // 最大履歴数を超えたら古いものを削除
+    if (history.states.length > history.maxStates) {
+        history.states.shift();
+    } else {
+        history.currentIndex++;
+    }
+
+    updateUndoRedoButtons();
+}
+
+function undo() {
+    if (history.currentIndex > 0) {
+        history.currentIndex--;
+        const state = JSON.parse(history.states[history.currentIndex]);
+        people = state.people;
+        relationships = state.relationships;
+        render();
+        saveToLocalStorage();
+        updateUndoRedoButtons();
+    }
+}
+
+function redo() {
+    if (history.currentIndex < history.states.length - 1) {
+        history.currentIndex++;
+        const state = JSON.parse(history.states[history.currentIndex]);
+        people = state.people;
+        relationships = state.relationships;
+        render();
+        saveToLocalStorage();
+        updateUndoRedoButtons();
+    }
+}
+
+function updateUndoRedoButtons() {
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+
+    if (undoBtn) {
+        undoBtn.disabled = history.currentIndex <= 0;
+    }
+
+    if (redoBtn) {
+        redoBtn.disabled = history.currentIndex >= history.states.length - 1;
+    }
+}
+
 window.onload = function() {
     canvas = document.getElementById('canvas');
     ctx = canvas.getContext('2d');
@@ -80,6 +142,9 @@ window.onload = function() {
     document.getElementById('zoomOutBtn').addEventListener('click', zoomOut);
     document.getElementById('resetZoomBtn').addEventListener('click', resetZoom);
 
+    document.getElementById('undoBtn').addEventListener('click', undo);
+    document.getElementById('redoBtn').addEventListener('click', redo);
+
     // Header navigation
     const menuBtn = document.getElementById('menuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
@@ -121,6 +186,9 @@ window.onload = function() {
     render();
     updateOGPTags(); // Update OGP tags on page load
 
+    // 初期状態を履歴に保存
+    saveState();
+
     window.addEventListener('resize', resizeCanvas);
 };
 
@@ -138,6 +206,18 @@ function handleKeyDown(e) {
     // Escキーで関係性追加モードをキャンセル
     if (e.key === 'Escape') {
         cancelAddRelationMode();
+    }
+
+    // Ctrl+Z / Cmd+Z でUndo
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+    }
+
+    // Ctrl+Y / Cmd+Shift+Z でRedo
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) {
+        e.preventDefault();
+        redo();
     }
 }
 
@@ -227,6 +307,7 @@ function renderPersonList() {
                 person.name = newValue.trim();
                 render();
                 saveToLocalStorage();
+                saveState();
             } else {
                 render();
             }
@@ -283,6 +364,7 @@ function renderRelationList() {
                 rel.label = newValue.trim();
                 render();
                 saveToLocalStorage();
+                saveState();
             } else {
                 render();
             }
@@ -671,6 +753,7 @@ function handleRelationModeClick(personId) {
                 });
                 render();
                 saveToLocalStorage();
+                saveState();
             }
 
             // モードをリセット
@@ -722,6 +805,9 @@ function handleCanvasMouseMove(e) {
 }
 
 function handleCanvasMouseUp() {
+    if (dragging !== null || draggingLabel !== null) {
+        saveState();
+    }
     dragging = null;
     draggingLabel = null;
     canvas.style.cursor = 'default';
@@ -821,6 +907,7 @@ function handleTouchMove(e) {
 function handleTouchEnd(e) {
     if (dragging !== null || draggingLabel !== null) {
         saveToLocalStorage();
+        saveState();
     }
     dragging = null;
     draggingLabel = null;
@@ -890,6 +977,7 @@ function addPerson() {
     cancelAddPerson();
     render();
     saveToLocalStorage();
+    saveState();
 }
 
 function deletePerson(id) {
@@ -898,6 +986,7 @@ function deletePerson(id) {
         relationships = relationships.filter(r => r.from !== id && r.to !== id);
         render();
         saveToLocalStorage();
+        saveState();
     }
 }
 
@@ -1038,6 +1127,7 @@ function addRelation() {
     cancelAddRelation();
     render();
     saveToLocalStorage();
+    saveState();
 }
 
 function deleteRelation(id) {
@@ -1045,6 +1135,7 @@ function deleteRelation(id) {
         relationships = relationships.filter(r => r.id !== id);
         render();
         saveToLocalStorage();
+        saveState();
     }
 }
 
@@ -1067,6 +1158,7 @@ function reverseRelation(id) {
         relation.to = temp;
         render();
         saveToLocalStorage();
+        saveState();
     }
 }
 
@@ -1105,6 +1197,7 @@ function editRelationTarget(id) {
             relation.from = availablePeople[newFromIndex].id;
             render();
             saveToLocalStorage();
+            saveState();
         }
     } else if (choice === '2') {
         // 「へ」を変更
@@ -1126,6 +1219,7 @@ function editRelationTarget(id) {
             relation.to = availablePeople[newToIndex].id;
             render();
             saveToLocalStorage();
+            saveState();
         }
     }
 }
@@ -1174,6 +1268,7 @@ function autoArrange() {
 
     render();
     saveToLocalStorage();
+    saveState();
 }
 
 function saveAsImage() {
