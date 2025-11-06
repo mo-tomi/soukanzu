@@ -213,7 +213,15 @@ function renderPersonList() {
         const nameDiv = document.createElement('div');
         nameDiv.className = 'person-name';
         nameDiv.textContent = person.name;
-        nameDiv.addEventListener('click', () => editPersonName(person.id));
+        nameDiv.addEventListener('click', () => makeInlineEditable(nameDiv, person.name, (newValue) => {
+            if (newValue && newValue.trim()) {
+                person.name = newValue.trim();
+                render();
+                saveToLocalStorage();
+            } else {
+                render();
+            }
+        }));
         info.appendChild(nameDiv);
 
         const deleteBtn = document.createElement('div');
@@ -261,7 +269,15 @@ function renderRelationList() {
         const label = document.createElement('div');
         label.className = 'relation-label';
         label.textContent = rel.label;
-        label.addEventListener('click', () => editRelationLabel(rel.id));
+        label.addEventListener('click', () => makeInlineEditable(label, rel.label, (newValue) => {
+            if (newValue && newValue.trim()) {
+                rel.label = newValue.trim();
+                render();
+                saveToLocalStorage();
+            } else {
+                render();
+            }
+        }));
 
         info.appendChild(arrow);
         info.appendChild(label);
@@ -866,6 +882,70 @@ function deletePerson(id) {
         render();
         saveToLocalStorage();
     }
+}
+
+function makeInlineEditable(element, currentValue, onSave) {
+    // 既に編集中の場合は何もしない
+    if (element.querySelector('input')) return;
+
+    // 現在のテキストを保存
+    const originalText = element.textContent;
+
+    // input要素を作成
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentValue;
+    input.className = 'inline-edit-input';
+
+    // スタイルを設定
+    input.style.width = '100%';
+    input.style.padding = '4px 8px';
+    input.style.border = '2px solid #3b82f6';
+    input.style.borderRadius = '4px';
+    input.style.fontSize = 'inherit';
+    input.style.fontFamily = 'inherit';
+    input.style.outline = 'none';
+    input.style.boxSizing = 'border-box';
+
+    // 保存処理
+    const save = () => {
+        const newValue = input.value.trim();
+        if (newValue) {
+            onSave(newValue);
+        } else {
+            // 空の場合は元に戻す
+            element.textContent = originalText;
+        }
+    };
+
+    // キャンセル処理
+    const cancel = () => {
+        element.textContent = originalText;
+    };
+
+    // Enterキーで確定
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            save();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancel();
+        }
+    });
+
+    // フォーカスアウトで確定
+    input.addEventListener('blur', () => {
+        save();
+    });
+
+    // 要素を置き換え
+    element.textContent = '';
+    element.appendChild(input);
+
+    // フォーカスして全選択
+    input.focus();
+    input.select();
 }
 
 function editPersonName(id) {
